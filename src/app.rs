@@ -44,11 +44,11 @@ pub struct Grid {
 pub struct App {
     pub current_screen: CurrentScreen,
     pub help_screen: bool,
-    pub ant: Ant, // Langton's Ant
-    pub ant_grid: Grid, // Grid of cells
-    pub generation: u64, // Number of generations
+    pub ant: Ant,         // Langton's Ant
+    pub ant_grid: Grid,   // Grid of cells
+    pub generation: u64,  // Number of generations
     pub is_running: bool, // Pause/Resume
-    pub speed: Duration, // Delay between each generation
+    pub speed: Duration,  // Delay between each generation
     pub marker: Marker,
 }
 

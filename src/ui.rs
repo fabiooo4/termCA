@@ -94,7 +94,6 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 Line::from("Space ".yellow()),
                 Line::from("? ".yellow()),
                 Line::from("L / → ".yellow()),
-                Line::from("H / ← ".yellow()),
                 Line::from("J / ↓ ".yellow()),
                 Line::from("K / ↑ ".yellow()),
             ];
@@ -104,12 +103,11 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 Line::from("Start/Pause"),
                 Line::from("Help"),
                 Line::from("Next Generation"),
-                Line::from("Previous Generation"),
                 Line::from("Speed Down"),
                 Line::from("Speed Up"),
             ];
 
-            let help_area = centered_rect_length(31, (keys.len() + 4) as u16, frame.area());
+            let help_area = centered_rect_length(27, (keys.len() + 4) as u16, frame.area());
             let help_block = Block::default()
                 .title(" Help ".yellow().bold())
                 .title_alignment(Alignment::Center)
@@ -128,7 +126,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
             let help_center = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
+                .constraints([Constraint::Percentage(35), Constraint::Percentage(65)])
                 .split(help_layout[1]);
 
             let help_keys = Paragraph::new(keys).alignment(Alignment::Right);

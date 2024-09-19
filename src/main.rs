@@ -48,9 +48,6 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                                 KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
                                     app.run_ant()
                                 }
-                                KeyCode::Left | KeyCode::Char('h') | KeyCode::Char('H') => {
-                                    app.run_ant()
-                                }
                                 KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
                                     app.speed = app.speed.saturating_add(Duration::from_millis(10));
                                 }
