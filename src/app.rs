@@ -43,6 +43,7 @@ pub struct Grid {
 
 pub struct App {
     pub current_screen: CurrentScreen,
+    pub help_screen: bool,
     pub ant: Ant, // Langton's Ant
     pub ant_grid: Grid, // Grid of cells
     pub generation: u64, // Number of generations
@@ -54,6 +55,7 @@ pub struct App {
 impl App {
     pub fn new() -> Self {
         App {
+            help_screen: false,
             current_screen: CurrentScreen::Ant,
             ant: Ant {
                 x: 0.0,
