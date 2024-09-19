@@ -3,7 +3,6 @@ mod ui;
 use app::CurrentScreen;
 use crossterm::event::{self, Event, KeyCode};
 use ratatui::DefaultTerminal;
-use ratatui::{prelude::Backend, Terminal};
 use std::io;
 use std::time::Duration;
 
@@ -24,7 +23,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
         terminal.draw(|f| ui(f, app))?;
 
         // Event handling
-        if is_event_available()? {
+        if is_event_available(app.speed)? || !app.is_running {
             if let Event::Key(key) = event::read()? {
                 if key.kind == event::KeyEventKind::Release {
                     // Skip events that are not KeyEventKind::Press
@@ -34,21 +33,14 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                 match app.current_screen {
                     CurrentScreen::Ant => match key.code {
                         KeyCode::Char('q') => app.current_screen = CurrentScreen::Exit,
-                        KeyCode::Right=> {
-                            // Move one terminal cell to the right
-                            app.ant.x += 1.;
+                        KeyCode::Char(' ') => app.is_running = !app.is_running,
+                        KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => app.run_ant(),
+                        KeyCode::Left | KeyCode::Char('h') | KeyCode::Char('H') => app.run_ant(),
+                        KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
+                            app.speed = app.speed.saturating_add(Duration::from_millis(10));
                         }
-                        KeyCode::Up => {
-                            // Move half terminal cell up
-                            app.ant.y += 1.;
-                        }
-                        KeyCode::Left => {
-                            // Move one terminal cell to the left
-                            app.ant.x -= 1.;
-                        }
-                        KeyCode::Down => {
-                            // Move half terminal cell down
-                            app.ant.y -= 1.;
+                        KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => {
+                            app.speed = app.speed.saturating_sub(Duration::from_millis(10));
                         }
                         _ => {}
                     },
@@ -59,11 +51,17 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
 
         match app.current_screen {
             CurrentScreen::Exit => break Ok(()),
+            CurrentScreen::Ant => {
+                if app.is_running {
+                    // Run Langton's Ant
+                    app.run_ant();
+                }
+            }
             _ => {}
         }
     }
 }
 
-fn is_event_available() -> io::Result<bool> {
-    event::poll(Duration::from_millis(100))
+fn is_event_available(speed: Duration) -> io::Result<bool> {
+    event::poll(speed)
 }
