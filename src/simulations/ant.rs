@@ -87,25 +87,34 @@ impl AntSim {
 
     pub fn ant_forward(ant: &mut Ant, grid: &Grid) {
         match ant.direction {
+            // Wrap around the grid
             Direction::Left => {
-                if ant.x > 0.0 {
-                    ant.x -= 1.0;
-                }
+                ant.x = if ant.x > 0.0 {
+                    ant.x - 1.0
+                } else {
+                    grid.cells[0].len() as f64 - 1.0
+                };
             }
             Direction::Right => {
-                if ant.x < (grid.cells[0].len() - 1) as f64 {
-                    ant.x += 1.0;
-                }
+                ant.x = if ant.x < (grid.cells[0].len() - 1) as f64 {
+                    ant.x + 1.0
+                } else {
+                    0.0
+                };
             }
             Direction::Up => {
-                if ant.y > 0.0 {
-                    ant.y -= 1.0;
-                }
+                ant.y = if ant.y > 0.0 {
+                    ant.y - 1.0
+                } else {
+                    grid.cells.len() as f64 - 1.0
+                };
             }
             Direction::Down => {
-                if ant.y < (grid.cells.len() - 1) as f64 {
-                    ant.y += 1.0;
-                }
+                ant.y = if ant.y < (grid.cells.len() - 1) as f64 {
+                    ant.y + 1.0
+                } else {
+                    0.0
+                };
             }
         }
     }

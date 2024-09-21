@@ -20,11 +20,14 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     // Render widgets
     match app.current_screen {
         CurrentScreen::Ant => {
+            let width = f64::from(frame.area().width - 2);
+            let height = f64::from((frame.area().height - 2) * 2);
+
             if app.ant_sim.grid.cells.is_empty() {
                 // Initialize grid
                 app.ant_sim.grid.cells = vec![
-                    vec![app.ant_sim.states[0]; frame.area().width.into()];
-                    (frame.area().height * 2).into()
+                    vec![app.ant_sim.states[0]; width as usize];
+                   height as usize 
                 ];
 
                 // Initialize ruleset
@@ -32,8 +35,6 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
                 // Set ant position randomly biased towards the center
                 let mut rng = rand::thread_rng();
-                let width = f64::from(frame.area().width - 2);
-                let height = f64::from((frame.area().height - 2) * 2);
 
                 for ant in &mut app.ant_sim.ants {
                     ant.x =

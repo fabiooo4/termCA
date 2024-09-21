@@ -25,7 +25,7 @@ impl App {
         App {
             help_screen: false,
             current_screen: CurrentScreen::Ant,
-            is_running: true,
+            is_running: false,
             speed: Duration::from_millis(80),
             marker: Marker::HalfBlock,
             ant_sim: AntSim {
@@ -35,8 +35,8 @@ impl App {
                 states: vec![
                     Color::Reset,
                     Color::Indexed(3),
-                    Color::Indexed(2),
                     Color::Indexed(1),
+                    Color::Indexed(2),
                     Color::Indexed(4),
                     Color::Indexed(5),
                     Color::Indexed(6),
