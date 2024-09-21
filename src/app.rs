@@ -28,7 +28,6 @@ impl App {
             is_running: true,
             speed: Duration::from_millis(80),
             marker: Marker::HalfBlock,
-
             ant_sim: AntSim {
                 ant: Ant {
                     x: 0.0,

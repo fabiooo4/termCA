@@ -44,45 +44,53 @@ impl AntSim {
     }
 
     pub fn run_ant_sim(app: &mut App) {
-        Self::ant_forward(app);
-        Self::ant_turn(app);
-        Self::ant_flip(app);
+        Self::ant_forward(&mut app.ant_sim.ant, &app.ant_sim.ant_grid);
+        Self::ant_turn(
+            &mut app.ant_sim.ant,
+            &app.ant_sim.ant_grid,
+            &app.ant_sim.states,
+            &app.ant_sim.rules,
+        );
+        Self::ant_flip(
+            &app.ant_sim.ant,
+            &mut app.ant_sim.ant_grid,
+            &app.ant_sim.states,
+        );
+
         app.ant_sim.generation += 1;
     }
 
-    pub fn ant_forward(app: &mut App) {
-        match app.ant_sim.ant.direction {
+    pub fn ant_forward(ant: &mut Ant, grid: &Grid) {
+        match ant.direction {
             Direction::Left => {
-                if app.ant_sim.ant.x > 0.0 {
-                    app.ant_sim.ant.x -= 1.0;
+                if ant.x > 0.0 {
+                    ant.x -= 1.0;
                 }
             }
             Direction::Right => {
-                if app.ant_sim.ant.x < (app.ant_sim.ant_grid.cells[0].len() - 1) as f64 {
-                    app.ant_sim.ant.x += 1.0;
+                if ant.x < (grid.cells[0].len() - 1) as f64 {
+                    ant.x += 1.0;
                 }
             }
             Direction::Up => {
-                if app.ant_sim.ant.y > 0.0 {
-                    app.ant_sim.ant.y -= 1.0;
+                if ant.y > 0.0 {
+                    ant.y -= 1.0;
                 }
             }
             Direction::Down => {
-                if app.ant_sim.ant.y < (app.ant_sim.ant_grid.cells.len() - 1) as f64 {
-                    app.ant_sim.ant.y += 1.0;
+                if ant.y < (grid.cells.len() - 1) as f64 {
+                    ant.y += 1.0;
                 }
             }
         }
     }
 
-    pub fn ant_turn(app: &mut App) {
-        for (state, rule) in app.ant_sim.states.iter().zip(app.ant_sim.rules.iter()) {
-            if app.ant_sim.ant_grid.cells[app.ant_sim.ant.y as usize][app.ant_sim.ant.x as usize]
-                == *state
-            {
+    pub fn ant_turn(ant: &mut Ant, grid: &Grid, states: &Vec<Color>, rules: &Vec<Direction>) {
+        for (state, rule) in states.iter().zip(rules.iter()) {
+            if grid.cells[ant.y as usize][ant.x as usize] == *state {
                 match rule {
                     Direction::Left => {
-                        app.ant_sim.ant.direction = match app.ant_sim.ant.direction {
+                        ant.direction = match ant.direction {
                             Direction::Left => Direction::Down,
                             Direction::Right => Direction::Up,
                             Direction::Up => Direction::Left,
@@ -90,7 +98,7 @@ impl AntSim {
                         };
                     }
                     Direction::Right => {
-                        app.ant_sim.ant.direction = match app.ant_sim.ant.direction {
+                        ant.direction = match ant.direction {
                             Direction::Left => Direction::Up,
                             Direction::Right => Direction::Down,
                             Direction::Up => Direction::Right,
@@ -98,7 +106,7 @@ impl AntSim {
                         };
                     }
                     Direction::Down => {
-                        app.ant_sim.ant.direction = match app.ant_sim.ant.direction {
+                        ant.direction = match ant.direction {
                             Direction::Left => Direction::Right,
                             Direction::Right => Direction::Left,
                             Direction::Up => Direction::Down,
@@ -111,17 +119,14 @@ impl AntSim {
         }
     }
 
-    pub fn ant_flip(app: &mut App) {
-        let states = app.ant_sim.states.clone();
+    pub fn ant_flip(ant: &Ant, grid: &mut Grid, states: &Vec<Color>) {
+        let states = states.clone();
         let mut states = states.iter().cycle();
 
         // Assign the next state to the current cell
         while let Some(state) = states.next() {
-            if app.ant_sim.ant_grid.cells[app.ant_sim.ant.y as usize][app.ant_sim.ant.x as usize]
-                == *state
-            {
-                app.ant_sim.ant_grid.cells[app.ant_sim.ant.y as usize]
-                    [app.ant_sim.ant.x as usize] = states.next().unwrap().clone();
+            if grid.cells[ant.y as usize][ant.x as usize] == *state {
+                grid.cells[ant.y as usize][ant.x as usize] = states.next().unwrap().clone();
                 break;
             }
         }
