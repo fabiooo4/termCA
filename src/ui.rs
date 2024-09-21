@@ -11,17 +11,21 @@ use ratatui::{
     Frame,
 };
 
-use crate::app::{App, CurrentScreen};
+use crate::{app::{App, CurrentScreen}, simulations::ant::AntSim};
 
 pub fn ui(frame: &mut Frame, app: &mut App) {
     // Render widgets
     match app.current_screen {
         CurrentScreen::Ant => {
             if app.ant_sim.grid.cells.is_empty() {
+                // Initialize grid
                 app.ant_sim.grid.cells = vec![
-                    vec![Color::Black; frame.area().width.into()];
+                    vec![app.ant_sim.states[0]; frame.area().width.into()];
                     (frame.area().height * 2).into()
                 ];
+
+                // Initialize ruleset
+                app.ant_sim.rules = AntSim::parse_ant_ruleset(&app.ant_sim.rules_input);
 
                 // Set ant position randomly biased towards the center
                 let mut rng = rand::thread_rng();

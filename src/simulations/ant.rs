@@ -47,17 +47,19 @@ impl Grid {
 }
 
 impl AntSim {
-    pub fn parse_ant_ruleset(app: &mut App) {
-        app.ant_sim.rules.clear();
-        for c in app.ant_sim.rules_input.chars() {
+    pub fn parse_ant_ruleset(rules: &str) -> Vec<Direction> {
+        let mut ruleset = Vec::new();
+        for c in rules.chars() {
             match c {
-                'L' => app.ant_sim.rules.push(Direction::Left),
-                'R' => app.ant_sim.rules.push(Direction::Right),
-                'F' => app.ant_sim.rules.push(Direction::Up),
-                'B' => app.ant_sim.rules.push(Direction::Down),
+                'L' => ruleset.push(Direction::Left),
+                'R' => ruleset.push(Direction::Right),
+                'F' => ruleset.push(Direction::Down),
+                'B' => ruleset.push(Direction::Up),
                 _ => {}
             }
         }
+
+        ruleset
     }
 
     pub fn run_ant_sim(app: &mut App) {
@@ -73,6 +75,7 @@ impl AntSim {
                 ant,
                 &mut app.ant_sim.grid,
                 &app.ant_sim.states,
+                &app.ant_sim.rules,
             );
         }
 
@@ -138,9 +141,10 @@ impl AntSim {
         }
     }
 
-    pub fn ant_flip(ant: &Ant, grid: &mut Grid, states: &Vec<Color>) {
+    pub fn ant_flip(ant: &Ant, grid: &mut Grid, states: &Vec<Color>, rules: &Vec<Direction>) {
         let states = states.clone();
-        let mut states = states.iter().cycle();
+        let rules_len = rules.len();
+        let mut states = states[0..rules_len].iter().cycle();
 
         // Assign the next state to the current cell
         while let Some(state) = states.next() {
