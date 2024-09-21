@@ -3,9 +3,9 @@ use ratatui::style::Color;
 use crate::app::App;
 
 pub struct AntSim {
-    pub ant: Ant,            // Langton's Ant
+    pub ants: Vec<Ant>,            // Langton's Ant
     pub rules_input: String, // Ant ruleset
-    pub ant_grid: Grid,      // Grid of cells
+    pub grid: Grid,      // Grid of cells
     pub states: Vec<Color>,
     pub rules: Vec<Direction>,
     pub generation: u64, // Number of generations
@@ -18,6 +18,17 @@ pub struct Ant {
     pub direction: Direction,
 }
 
+impl Ant {
+    pub fn new() -> Self {
+        Ant {
+            x: 0.0,
+            y: 0.0,
+            color: Color::Black,
+            direction: Direction::Right,
+        }
+    }
+}
+
 pub enum Direction {
     Left,
     Right,
@@ -27,6 +38,12 @@ pub enum Direction {
 
 pub struct Grid {
     pub cells: Vec<Vec<Color>>,
+}
+
+impl Grid {
+    pub fn new() -> Self {
+        Grid { cells: Vec::new() }
+    }
 }
 
 impl AntSim {
@@ -44,18 +61,20 @@ impl AntSim {
     }
 
     pub fn run_ant_sim(app: &mut App) {
-        Self::ant_forward(&mut app.ant_sim.ant, &app.ant_sim.ant_grid);
-        Self::ant_turn(
-            &mut app.ant_sim.ant,
-            &app.ant_sim.ant_grid,
-            &app.ant_sim.states,
-            &app.ant_sim.rules,
-        );
-        Self::ant_flip(
-            &app.ant_sim.ant,
-            &mut app.ant_sim.ant_grid,
-            &app.ant_sim.states,
-        );
+        for ant in app.ant_sim.ants.iter_mut() {
+            Self::ant_forward(ant, &app.ant_sim.grid);
+            Self::ant_turn(
+                ant,
+                &app.ant_sim.grid,
+                &app.ant_sim.states,
+                &app.ant_sim.rules,
+            );
+            Self::ant_flip(
+                ant,
+                &mut app.ant_sim.grid,
+                &app.ant_sim.states,
+            );
+        }
 
         app.ant_sim.generation += 1;
     }

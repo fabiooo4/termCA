@@ -29,20 +29,16 @@ impl App {
             speed: Duration::from_millis(80),
             marker: Marker::HalfBlock,
             ant_sim: AntSim {
-                ant: Ant {
-                    x: 0.0,
-                    y: 0.0,
-                    color: Color::Black,
-                    direction: Direction::Right,
-                },
+                ants: vec![
+                    Ant::new(),
+                    Ant::new(),
+                ],
                 rules_input: String::from("LR"),
-                ant_grid: Grid { cells: Vec::new() },
-                states: vec![Color::Black, Color::Red, Color::Yellow, Color::Green],
+                grid: Grid::new(),
+                states: vec![Color::Black, Color::Yellow],
                 rules: vec![
                     Direction::Left,
                     Direction::Right,
-                    Direction::Left,
-                    Direction::Up,
                 ],
                 generation: 0,
             },

@@ -1,3 +1,4 @@
+use rand::{prelude::Distribution, Rng};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
@@ -16,15 +17,33 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     // Render widgets
     match app.current_screen {
         CurrentScreen::Ant => {
-            if app.ant_sim.ant_grid.cells.is_empty() {
-                app.ant_sim.ant_grid.cells = vec![
+            if app.ant_sim.grid.cells.is_empty() {
+                app.ant_sim.grid.cells = vec![
                     vec![Color::Black; frame.area().width.into()];
                     (frame.area().height * 2).into()
                 ];
 
-                // Set ant position to the middle of the grid
-                app.ant_sim.ant.x = f64::from((frame.area().width - 3) / 2);
-                app.ant_sim.ant.y = f64::from(frame.area().height - 2);
+                // Set ant position randomly biased towards the center
+                let mut rng = rand::thread_rng();
+                let width = f64::from(frame.area().width - 2);
+                let height = f64::from((frame.area().height - 2) * 2);
+
+                for ant in &mut app.ant_sim.ants {
+                    ant.x = rng.gen_range((width * 0.4) as u64..(width - width * 0.4) as u64) as f64;
+                    ant.y = rng.gen_range((height * 0.4) as u64..(height - height * 0.4) as u64) as f64;
+                }
+
+                // Set ant direction randomly
+                for ant in &mut app.ant_sim.ants {
+                    let direction = rng.gen_range(0..4);
+                    ant.direction = match direction {
+                        0 => crate::simulations::ant::Direction::Left,
+                        1 => crate::simulations::ant::Direction::Right,
+                        2 => crate::simulations::ant::Direction::Up,
+                        3 => crate::simulations::ant::Direction::Down,
+                        _ => crate::simulations::ant::Direction::Right,
+                    };
+                }
             }
 
             let top_title = Title::from(Line::from(vec![" Langton's Ant ".yellow()]))
@@ -64,7 +83,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .marker(app.marker)
                 .paint(|ctx| {
                     // Draw grid
-                    for (y, row) in app.ant_sim.ant_grid.cells.iter().enumerate() {
+                    for (y, row) in app.ant_sim.grid.cells.iter().enumerate() {
                         for (x, cell) in row.iter().enumerate() {
                             match *cell {
                                 // Skip drawing black cells
@@ -80,10 +99,12 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                     }
 
                     // Draw ant
-                    ctx.draw(&Points {
-                        coords: &[(app.ant_sim.ant.x, app.ant_sim.ant.y)],
-                        color: app.ant_sim.ant.color,
-                    });
+                    for ant in app.ant_sim.ants.iter() {
+                        ctx.draw(&Points {
+                            coords: &[(ant.x, ant.y)],
+                            color: ant.color,
+                        });
+                    }
                 })
                 .x_bounds([0., f64::from((frame.area().width - 2) - 1)])
                 .y_bounds([0., f64::from(((frame.area().height - 2) * 2) - 1)]);
