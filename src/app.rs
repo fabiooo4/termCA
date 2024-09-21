@@ -30,13 +30,13 @@ impl App {
             marker: Marker::HalfBlock,
             ant_sim: AntSim {
                 ants: vec![Ant::new()],
-                rules_input: String::from("LRRRRRLLR"),
+                rules_input: String::from("RL"),
                 grid: Grid::new(),
                 states: vec![
                     Color::Reset,
-                    Color::Indexed(1),
-                    Color::Indexed(2),
                     Color::Indexed(3),
+                    Color::Indexed(2),
+                    Color::Indexed(1),
                     Color::Indexed(4),
                     Color::Indexed(5),
                     Color::Indexed(6),

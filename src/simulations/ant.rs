@@ -29,6 +29,7 @@ impl Ant {
     }
 }
 
+#[derive(Debug)]
 pub enum Direction {
     Left,
     Right,
@@ -59,18 +60,20 @@ impl AntSim {
             }
         }
 
+        println!("{:?}", ruleset);
+
         ruleset
     }
 
     pub fn run_ant_sim(app: &mut App) {
         for ant in app.ant_sim.ants.iter_mut() {
-            Self::ant_forward(ant, &app.ant_sim.grid);
             Self::ant_turn(
                 ant,
                 &app.ant_sim.grid,
                 &app.ant_sim.states,
                 &app.ant_sim.rules,
             );
+            Self::ant_forward(ant, &app.ant_sim.grid);
             Self::ant_flip(
                 ant,
                 &mut app.ant_sim.grid,

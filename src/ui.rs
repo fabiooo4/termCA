@@ -11,7 +11,10 @@ use ratatui::{
     Frame,
 };
 
-use crate::{app::{App, CurrentScreen}, simulations::ant::AntSim};
+use crate::{
+    app::{App, CurrentScreen},
+    simulations::ant::AntSim,
+};
 
 pub fn ui(frame: &mut Frame, app: &mut App) {
     // Render widgets
@@ -33,8 +36,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 let height = f64::from((frame.area().height - 2) * 2);
 
                 for ant in &mut app.ant_sim.ants {
-                    ant.x = rng.gen_range((width * 0.4) as u64..(width - width * 0.4) as u64) as f64;
-                    ant.y = rng.gen_range((height * 0.4) as u64..(height - height * 0.4) as u64) as f64;
+                    ant.x =
+                        rng.gen_range((width * 0.4) as u64..(width - width * 0.4) as u64) as f64;
+                    ant.y =
+                        rng.gen_range((height * 0.4) as u64..(height - height * 0.4) as u64) as f64;
                 }
 
                 // Set ant direction randomly
@@ -49,6 +54,9 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                     };
                 }
             }
+
+            let debug_paragraph =
+                Paragraph::new(vec![Line::from(format!("{:?}", app.ant_sim.rules))]);
 
             let top_title = Title::from(Line::from(vec![" Langton's Ant ".yellow()]))
                 .position(Position::Top)
@@ -163,6 +171,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 frame.render_widget(help_block, help_area);
                 frame.render_widget(help_keys, help_center[0]);
                 frame.render_widget(help_labels, help_center[1]);
+                frame.render_widget(debug_paragraph, frame.area());
             }
         }
         _ => {}
