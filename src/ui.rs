@@ -16,15 +16,15 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     // Render widgets
     match app.current_screen {
         CurrentScreen::Ant => {
-            if app.ant_grid.cells.is_empty() {
-                app.ant_grid.cells = vec![
+            if app.ant_sim.ant_grid.cells.is_empty() {
+                app.ant_sim.ant_grid.cells = vec![
                     vec![Color::Black; frame.area().width.into()];
                     (frame.area().height * 2).into()
                 ];
 
                 // Set ant position to the middle of the grid
-                app.ant.x = f64::from((frame.area().width - 3) / 2);
-                app.ant.y = f64::from(frame.area().height - 2);
+                app.ant_sim.ant.x = f64::from((frame.area().width - 3) / 2);
+                app.ant_sim.ant.y = f64::from(frame.area().height - 2);
             }
 
             let top_title = Title::from(Line::from(vec![" Langton's Ant ".yellow()]))
@@ -33,7 +33,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
             let bottom_left_title = Title::from(Line::from(vec![
                 " Generation: ".into(),
-                app.generation.to_string().yellow(),
+                app.ant_sim.generation.to_string().yellow(),
                 " ".into(),
             ]))
             .position(Position::Bottom);
@@ -64,7 +64,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .marker(app.marker)
                 .paint(|ctx| {
                     // Draw grid
-                    for (y, row) in app.ant_grid.cells.iter().enumerate() {
+                    for (y, row) in app.ant_sim.ant_grid.cells.iter().enumerate() {
                         for (x, cell) in row.iter().enumerate() {
                             match *cell {
                                 // Skip drawing black cells
@@ -81,8 +81,8 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
                     // Draw ant
                     ctx.draw(&Points {
-                        coords: &[(app.ant.x, app.ant.y)],
-                        color: app.ant.color,
+                        coords: &[(app.ant_sim.ant.x, app.ant_sim.ant.y)],
+                        color: app.ant_sim.ant.color,
                     });
                 })
                 .x_bounds([0., f64::from((frame.area().width - 2) - 1)])
