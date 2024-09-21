@@ -10,7 +10,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::app::{App, CellState, CurrentScreen};
+use crate::app::{App, CurrentScreen};
 
 pub fn ui(frame: &mut Frame, app: &mut App) {
     // Render widgets
@@ -18,7 +18,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         CurrentScreen::Ant => {
             if app.ant_grid.cells.is_empty() {
                 app.ant_grid.cells = vec![
-                    vec![CellState::Dead; frame.area().width.into()];
+                    vec![Color::Black; frame.area().width.into()];
                     (frame.area().height * 2).into()
                 ];
 
@@ -66,15 +66,16 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                     // Draw grid
                     for (y, row) in app.ant_grid.cells.iter().enumerate() {
                         for (x, cell) in row.iter().enumerate() {
-                            match cell {
-                                crate::app::CellState::Alive => {
+                            match *cell {
+                                // Skip drawing black cells
+                                Color::Black => {}
+                                _ => {
                                     ctx.draw(&Points {
                                         coords: &[(x as f64, y as f64)],
-                                        color: app.ant_grid.alive_color,
+                                        color: *cell,
                                     });
                                 }
-                                crate::app::CellState::Dead => {}
-                            };
+                            }
                         }
                     }
 

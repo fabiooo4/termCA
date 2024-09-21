@@ -49,10 +49,10 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                                     app.run_ant()
                                 }
                                 KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
-                                    app.speed = app.speed.saturating_add(Duration::from_millis(10));
+                                    app.speed = app.speed.saturating_sub(Duration::from_millis(10));
                                 }
                                 KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => {
-                                    app.speed = app.speed.saturating_sub(Duration::from_millis(10));
+                                    app.speed = app.speed.saturating_add(Duration::from_millis(10));
                                 }
                                 _ => {}
                             }

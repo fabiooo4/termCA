@@ -15,20 +15,6 @@ pub enum Direction {
     Down,
 }
 
-pub enum CellState {
-    Alive,
-    Dead,
-}
-
-impl Clone for CellState {
-    fn clone(&self) -> Self {
-        match self {
-            CellState::Alive => CellState::Alive,
-            CellState::Dead => CellState::Dead,
-        }
-    }
-}
-
 pub struct Ant {
     pub x: f64,
     pub y: f64,
@@ -37,15 +23,17 @@ pub struct Ant {
 }
 
 pub struct Grid {
-    pub alive_color: Color,
-    pub cells: Vec<Vec<CellState>>,
+    pub cells: Vec<Vec<Color>>,
 }
 
 pub struct App {
     pub current_screen: CurrentScreen,
     pub help_screen: bool,
-    pub ant: Ant,         // Langton's Ant
-    pub ant_grid: Grid,   // Grid of cells
+    pub ant: Ant,            // Langton's Ant
+    pub rules_input: String, // Ant ruleset
+    pub ant_grid: Grid,      // Grid of cells
+    pub states: Vec<Color>,
+    pub rules: Vec<Direction>,
     pub generation: u64,  // Number of generations
     pub is_running: bool, // Pause/Resume
     pub speed: Duration,  // Delay between each generation
@@ -63,14 +51,27 @@ impl App {
                 color: Color::Yellow,
                 direction: Direction::Right,
             },
-            ant_grid: Grid {
-                alive_color: Color::White,
-                cells: Vec::new(),
-            },
+            rules_input: String::from("LR"),
+            ant_grid: Grid { cells: Vec::new() },
+            states: vec![Color::Black, Color::Red, Color::Yellow, Color::Green],
+            rules: vec![Direction::Left, Direction::Right, Direction::Left, Direction::Up],
             generation: 0,
             is_running: true,
             speed: Duration::from_millis(80),
             marker: Marker::HalfBlock,
+        }
+    }
+
+    pub fn parse_ant_ruleset(&mut self) {
+        self.rules.clear();
+        for c in self.rules_input.chars() {
+            match c {
+                'L' => self.rules.push(Direction::Left),
+                'R' => self.rules.push(Direction::Right),
+                'F' => self.rules.push(Direction::Up),
+                'B' => self.rules.push(Direction::Down),
+                _ => {}
+            }
         }
     }
 
@@ -107,33 +108,49 @@ impl App {
     }
 
     pub fn ant_turn(&mut self) {
-        match self.ant_grid.cells[self.ant.y as usize][self.ant.x as usize] {
-            CellState::Alive => {
-                // Turn right
-                self.ant.direction = match self.ant.direction {
-                    Direction::Left => Direction::Up,
-                    Direction::Right => Direction::Down,
-                    Direction::Up => Direction::Right,
-                    Direction::Down => Direction::Left,
-                };
-            }
-            CellState::Dead => {
-                // Turn left
-                self.ant.direction = match self.ant.direction {
-                    Direction::Left => Direction::Down,
-                    Direction::Right => Direction::Up,
-                    Direction::Up => Direction::Left,
-                    Direction::Down => Direction::Right,
-                };
+        for (state, rule) in self.states.iter().zip(self.rules.iter()) {
+            if self.ant_grid.cells[self.ant.y as usize][self.ant.x as usize] == *state {
+                match rule {
+                    Direction::Left => {
+                        self.ant.direction = match self.ant.direction {
+                            Direction::Left => Direction::Down,
+                            Direction::Right => Direction::Up,
+                            Direction::Up => Direction::Left,
+                            Direction::Down => Direction::Right,
+                        };
+                    }
+                    Direction::Right => {
+                        self.ant.direction = match self.ant.direction {
+                            Direction::Left => Direction::Up,
+                            Direction::Right => Direction::Down,
+                            Direction::Up => Direction::Right,
+                            Direction::Down => Direction::Left,
+                        };
+                    }
+                    Direction::Down => {
+                        self.ant.direction = match self.ant.direction {
+                            Direction::Left => Direction::Right,
+                            Direction::Right => Direction::Left,
+                            Direction::Up => Direction::Down,
+                            Direction::Down => Direction::Up,
+                        };
+                    }
+                    _ => {}
+                }
             }
         }
     }
 
     pub fn ant_flip(&mut self) {
-        self.ant_grid.cells[self.ant.y as usize][self.ant.x as usize] =
-            match self.ant_grid.cells[self.ant.y as usize][self.ant.x as usize] {
-                CellState::Alive => CellState::Dead,
-                CellState::Dead => CellState::Alive,
-            };
+        let states = self.states.clone();
+        let mut states = states.iter().cycle();
+
+        // Assign the next state to the current cell
+        while let Some(state) = states.next() {
+            if self.ant_grid.cells[self.ant.y as usize][self.ant.x as usize] == *state {
+                self.ant_grid.cells[self.ant.y as usize][self.ant.x as usize] = states.next().unwrap().clone();
+                break;
+            }
+        }
     }
 }
