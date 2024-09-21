@@ -2,14 +2,14 @@ mod app;
 mod simulations;
 mod ui;
 
+use crate::app::App;
+use crate::ui::ui;
 use app::CurrentScreen;
 use crossterm::event::{self, Event, KeyCode};
 use ratatui::DefaultTerminal;
 use simulations::ant::run_ant;
 use std::io;
 use std::time::Duration;
-use crate::app::App;
-use crate::ui::ui;
 
 fn main() -> io::Result<()> {
     let mut terminal = ratatui::init();
@@ -33,34 +33,32 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                     continue;
                 }
 
-                match app.current_screen {
-                    CurrentScreen::Ant => {
-                        if app.help_screen {
-                            // Prevent any action when the help screen is displayed
-                            app.help_screen = false;
-                            app.is_running = true;
-                        } else {
-                            match key.code {
-                                KeyCode::Char('q') => app.current_screen = CurrentScreen::Exit,
-                                KeyCode::Char(' ') => app.is_running = !app.is_running,
-                                KeyCode::Char('?') => {
-                                    app.help_screen = !app.help_screen;
-                                    app.is_running = false;
-                                }
-                                KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
-                                    run_ant(app)
-                                }
-                                KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
-                                    app.speed = app.speed.saturating_sub(Duration::from_millis(10));
-                                }
-                                KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => {
-                                    app.speed = app.speed.saturating_add(Duration::from_millis(10));
-                                }
-                                _ => {}
+                if app.help_screen {
+                    // Prevent any action when the help screen is displayed
+                    app.help_screen = false;
+                    app.is_running = true;
+                } else {
+                    match app.current_screen {
+                        CurrentScreen::Ant => match key.code {
+                            KeyCode::Char('q') => app.current_screen = CurrentScreen::Exit,
+                            KeyCode::Char(' ') => app.is_running = !app.is_running,
+                            KeyCode::Char('?') => {
+                                app.help_screen = !app.help_screen;
+                                app.is_running = false;
                             }
-                        }
+                            KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
+                                run_ant(app)
+                            }
+                            KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
+                                app.speed = app.speed.saturating_sub(Duration::from_millis(10));
+                            }
+                            KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => {
+                                app.speed = app.speed.saturating_add(Duration::from_millis(10));
+                            }
+                            _ => {}
+                        },
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
         }

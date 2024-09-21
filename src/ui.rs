@@ -92,8 +92,8 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
             let keys = vec![
                 Line::from("Q ".yellow()),
-                Line::from("Space ".yellow()),
                 Line::from("? ".yellow()),
+                Line::from("Space ".yellow()),
                 Line::from("L / → ".yellow()),
                 Line::from("J / ↓ ".yellow()),
                 Line::from("K / ↑ ".yellow()),
@@ -101,8 +101,8 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
             let labels = vec![
                 Line::from("Quit"),
-                Line::from("Start/Pause"),
                 Line::from("Help"),
+                Line::from("Start/Pause"),
                 Line::from("Next Generation"),
                 Line::from("Speed Down"),
                 Line::from("Speed Up"),
