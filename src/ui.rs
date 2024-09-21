@@ -1,7 +1,7 @@
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
-    text::{Line, ToText},
+    text::Line,
     widgets::{
         block::{Position, Title},
         canvas::{Canvas, Points},

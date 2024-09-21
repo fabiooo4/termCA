@@ -7,7 +7,7 @@ use crate::ui::ui;
 use app::CurrentScreen;
 use crossterm::event::{self, Event, KeyCode};
 use ratatui::DefaultTerminal;
-use simulations::ant::run_ant;
+use simulations::ant::AntSim;
 use std::io;
 use std::time::Duration;
 
@@ -47,7 +47,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                                 app.is_running = false;
                             }
                             KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
-                                run_ant(app)
+                                AntSim::run_ant_sim(app);
                             }
                             KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
                                 app.speed = app.speed.saturating_sub(Duration::from_millis(10));
@@ -68,7 +68,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
             CurrentScreen::Ant => {
                 if app.is_running {
                     // Run Langton's Ant
-                    run_ant(app);
+                    AntSim::run_ant_sim(app);
                 }
             }
             _ => {}
