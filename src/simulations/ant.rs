@@ -3,17 +3,17 @@ use ratatui::style::Color;
 use crate::app::App;
 
 pub struct AntSim {
-    pub ants: Vec<Ant>,            // Langton's Ant
+    pub ants: Vec<Ant>,      // Langton's Ant
     pub rules_input: String, // Ant ruleset
-    pub grid: Grid,      // Grid of cells
+    pub grid: Grid,          // Grid of cells
     pub states: Vec<Color>,
     pub rules: Vec<Direction>,
     pub generation: u64, // Number of generations
 }
 
 pub struct Ant {
-    pub x: f64,
-    pub y: f64,
+    pub x: usize,
+    pub y: usize,
     pub color: Color,
     pub direction: Direction,
 }
@@ -21,8 +21,8 @@ pub struct Ant {
 impl Ant {
     pub fn new() -> Self {
         Ant {
-            x: 0.0,
-            y: 0.0,
+            x: 0,
+            y: 0,
             color: Color::Black,
             direction: Direction::Right,
         }
@@ -85,43 +85,87 @@ impl AntSim {
         app.ant_sim.generation += 1;
     }
 
+    /* pub fn run_ant_sim_reverse(app: &mut App) {
+        for ant in app.ant_sim.ants.iter_mut() {
+            ant_backward(ant, &app.ant_sim.grid);
+            ant_turn_reverse(ant, &app.ant_sim.grid, &app.ant_sim.states, &app.ant_sim.rules);
+            ant_flip_reverse(ant, &mut app.ant_sim.grid, &app.ant_sim.states, &app.ant_sim.rules);
+        }
+
+        app.ant_sim.generation -= 1;
+    } */
+
     pub fn ant_forward(ant: &mut Ant, grid: &Grid) {
         match ant.direction {
             // Wrap around the grid
             Direction::Left => {
-                ant.x = if ant.x > 0.0 {
-                    ant.x - 1.0
+                ant.x = if ant.x > 0 {
+                    ant.x - 1
                 } else {
-                    grid.cells[0].len() as f64 - 1.0
+                    grid.cells[0].len() - 1
                 };
             }
             Direction::Right => {
+                ant.x = if ant.x < (grid.cells[0].len() - 1) {
+                    ant.x + 1
+                } else {
+                    0
+                };
+            }
+            Direction::Up => {
+                ant.y = if ant.y > 0 {
+                    ant.y - 1
+                } else {
+                    grid.cells.len() - 1
+                };
+            }
+            Direction::Down => {
+                ant.y = if ant.y < (grid.cells.len() - 1) {
+                    ant.y + 1
+                } else {
+                    0
+                };
+            }
+        }
+    }
+
+    /* pub fn ant_backward(ant: &mut Ant, grid: &Grid) {
+        match ant.direction {
+            // Wrap around the grid
+            Direction::Left => {
                 ant.x = if ant.x < (grid.cells[0].len() - 1) as f64 {
                     ant.x + 1.0
                 } else {
                     0.0
                 };
             }
-            Direction::Up => {
-                ant.y = if ant.y > 0.0 {
-                    ant.y - 1.0
+            Direction::Right => {
+                ant.x = if ant.x > 0.0 {
+                    ant.x - 1.0
                 } else {
-                    grid.cells.len() as f64 - 1.0
+                    grid.cells[0].len() as f64 - 1.0
                 };
             }
-            Direction::Down => {
+            Direction::Up => {
                 ant.y = if ant.y < (grid.cells.len() - 1) as f64 {
                     ant.y + 1.0
                 } else {
                     0.0
                 };
             }
+            Direction::Down => {
+                ant.y = if ant.y > 0.0 {
+                    ant.y - 1.0
+                } else {
+                    grid.cells.len() as f64 - 1.0
+                };
+            }
         }
-    }
+    } */
 
     pub fn ant_turn(ant: &mut Ant, grid: &Grid, states: &Vec<Color>, rules: &Vec<Direction>) {
         for (state, rule) in states.iter().zip(rules.iter()) {
-            if grid.cells[ant.y as usize][ant.x as usize] == *state {
+            if grid.cells[ant.y][ant.x] == *state {
                 match rule {
                     Direction::Left => {
                         ant.direction = match ant.direction {
@@ -160,8 +204,8 @@ impl AntSim {
 
         // Assign the next state to the current cell
         while let Some(state) = states.next() {
-            if grid.cells[ant.y as usize][ant.x as usize] == *state {
-                grid.cells[ant.y as usize][ant.x as usize] = states.next().unwrap().clone();
+            if grid.cells[ant.y][ant.x] == *state {
+                grid.cells[ant.y][ant.x] = states.next().unwrap().clone();
                 break;
             }
         }

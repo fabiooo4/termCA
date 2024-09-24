@@ -25,12 +25,12 @@ impl App {
         App {
             help_screen: false,
             current_screen: CurrentScreen::Ant,
-            is_running: false,
+            is_running: true,
             speed: Duration::from_millis(80),
             marker: Marker::HalfBlock,
             ant_sim: AntSim {
                 ants: vec![Ant::new()],
-                rules_input: String::from("RL"),
+                rules_input: String::from("LRRRRRLLR"),
                 grid: Grid::new(),
                 states: vec![
                     Color::Reset,

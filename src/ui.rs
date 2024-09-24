@@ -38,9 +38,9 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
                 for ant in &mut app.ant_sim.ants {
                     ant.x =
-                        rng.gen_range((width * 0.4) as u64..(width - width * 0.4) as u64) as f64;
+                        rng.gen_range((width * 0.4) as usize..(width - width * 0.4) as usize) as usize;
                     ant.y =
-                        rng.gen_range((height * 0.4) as u64..(height - height * 0.4) as u64) as f64;
+                        rng.gen_range((height * 0.4) as usize..(height - height * 0.4) as usize) as usize;
                 }
 
                 // Set ant direction randomly
@@ -114,7 +114,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                     // Draw ant
                     for ant in app.ant_sim.ants.iter() {
                         ctx.draw(&Points {
-                            coords: &[(ant.x, ant.y)],
+                            coords: &[(ant.x as f64, ant.y as f64)],
                             color: ant.color,
                         });
                     }
