@@ -1,8 +1,8 @@
 use rand::{prelude::Distribution, Rng};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Color, Style, Stylize},
-    text::Line,
+    style::{Color, Style, Styled, Stylize},
+    text::{Line, Span},
     widgets::{
         block::{Position, Title},
         canvas::{Canvas, Points},
@@ -25,10 +25,8 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
             if app.ant_sim.grid.cells.is_empty() {
                 // Initialize grid
-                app.ant_sim.grid.cells = vec![
-                    vec![app.ant_sim.states[0]; width as usize];
-                   height as usize 
-                ];
+                app.ant_sim.grid.cells =
+                    vec![vec![app.ant_sim.states[0]; width as usize]; height as usize];
 
                 // Initialize ruleset
                 app.ant_sim.rules = AntSim::parse_ant_ruleset(&app.ant_sim.rules_input);
@@ -37,10 +35,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 let mut rng = rand::thread_rng();
 
                 for ant in &mut app.ant_sim.ants {
-                    ant.x =
-                        rng.gen_range((width * 0.4) as usize..(width - width * 0.4) as usize) as usize;
-                    ant.y =
-                        rng.gen_range((height * 0.4) as usize..(height - height * 0.4) as usize) as usize;
+                    ant.x = rng.gen_range((width * 0.4) as usize..(width - width * 0.4) as usize)
+                        as usize;
+                    ant.y = rng.gen_range((height * 0.4) as usize..(height - height * 0.4) as usize)
+                        as usize;
                 }
 
                 // Set ant direction randomly
@@ -55,9 +53,6 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                     };
                 }
             }
-
-            let debug_paragraph =
-                Paragraph::new(vec![Line::from(format!("{:?}", app.ant_sim.rules))]);
 
             let top_title = Title::from(Line::from(vec![" Langton's Ant ".yellow()]))
                 .position(Position::Top)
@@ -82,11 +77,28 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             .position(Position::Bottom)
             .alignment(Alignment::Right);
 
+            let top_left_debug = Title::from(Line::from(vec![
+                "(".into(),
+                app.ant_sim.ants[0].x.to_string().yellow(),
+                ",".into(),
+                app.ant_sim.ants[0].y.to_string().yellow(),
+                ")".into(),
+                " ".into(),
+                app.ant_sim.ants[0].direction.to_string().yellow(),
+                " ".into(),
+                Span::styled(
+                    app.ant_sim.states[app.ant_sim.generation % app.ant_sim.states.len()]
+                        .to_string(),
+                    Style::default().fg(app.ant_sim.states[app.ant_sim.generation % app.ant_sim.states.len()]),
+                ),
+            ]));
+
             let ant_canvas = Canvas::default()
                 .block(
                     Block::default()
                         .border_type(BorderType::Double)
                         .borders(Borders::ALL)
+                        .title(top_left_debug)
                         .title(top_title)
                         .title(bottom_left_title)
                         .title(bottom_right_title)
@@ -172,7 +184,6 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 frame.render_widget(help_block, help_area);
                 frame.render_widget(help_keys, help_center[0]);
                 frame.render_widget(help_labels, help_center[1]);
-                frame.render_widget(debug_paragraph, frame.area());
             }
         }
         _ => {}
@@ -207,9 +218,21 @@ fn centered_rect_length(cols: u16, rows: u16, r: Rect) -> Rect {
     let popup_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length((r.height - rows) / 2),
+            {
+                if r.height > rows {
+                    Constraint::Length((r.height - rows) / 2)
+                } else {
+                    Constraint::Min(1)
+                }
+            },
             Constraint::Length(rows),
-            Constraint::Length((r.height - rows) / 2),
+            {
+                if r.height > rows {
+                    Constraint::Length((r.height - rows) / 2)
+                } else {
+                    Constraint::Min(1)
+                }
+            },
         ])
         .split(r);
 

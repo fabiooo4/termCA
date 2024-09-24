@@ -25,7 +25,7 @@ impl App {
         App {
             help_screen: false,
             current_screen: CurrentScreen::Ant,
-            is_running: true,
+            is_running: false,
             speed: Duration::from_millis(80),
             marker: Marker::HalfBlock,
             ant_sim: AntSim {

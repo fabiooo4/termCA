@@ -1,3 +1,5 @@
+use std::fmt::{self, Display, Formatter};
+
 use ratatui::style::Color;
 
 use crate::app::App;
@@ -8,7 +10,7 @@ pub struct AntSim {
     pub grid: Grid,          // Grid of cells
     pub states: Vec<Color>,
     pub rules: Vec<Direction>,
-    pub generation: u64, // Number of generations
+    pub generation: usize, // Number of generations
 }
 
 pub struct Ant {
@@ -23,7 +25,7 @@ impl Ant {
         Ant {
             x: 0,
             y: 0,
-            color: Color::Black,
+            color: Color::Indexed(16),
             direction: Direction::Right,
         }
     }
@@ -35,6 +37,55 @@ pub enum Direction {
     Right,
     Up,
     Down,
+}
+
+impl Direction {
+    pub fn turn_left(&self) -> Self {
+        match self {
+            Direction::Left => Direction::Down,
+            Direction::Right => Direction::Up,
+            Direction::Up => Direction::Left,
+            Direction::Down => Direction::Right,
+        }
+    }
+
+    pub fn turn_right(&self) -> Self {
+        match self {
+            Direction::Left => Direction::Up,
+            Direction::Right => Direction::Down,
+            Direction::Up => Direction::Right,
+            Direction::Down => Direction::Left,
+        }
+    }
+
+    pub fn turn_opposite(&self) -> Self {
+        match self {
+            Direction::Left => Direction::Right,
+            Direction::Right => Direction::Left,
+            Direction::Up => Direction::Down,
+            Direction::Down => Direction::Up,
+        }
+    }
+
+    pub fn turn(&self, direction: &Direction) -> Self {
+        match direction {
+            Direction::Left => self.turn_left(),
+            Direction::Right => self.turn_right(),
+            Direction::Up => Direction::Up,
+            Direction::Down => self.turn_opposite(),
+        }
+    }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            Direction::Left => write!(f, "Left"),
+            Direction::Right => write!(f, "Right"),
+            Direction::Up => write!(f, "Up"),
+            Direction::Down => write!(f, "Down"),
+        }
+    }
 }
 
 pub struct Grid {
@@ -60,8 +111,6 @@ impl AntSim {
             }
         }
 
-        println!("{:?}", ruleset);
-
         ruleset
     }
 
@@ -73,13 +122,13 @@ impl AntSim {
                 &app.ant_sim.states,
                 &app.ant_sim.rules,
             );
-            Self::ant_forward(ant, &app.ant_sim.grid);
             Self::ant_flip(
                 ant,
                 &mut app.ant_sim.grid,
                 &app.ant_sim.states,
                 &app.ant_sim.rules,
             );
+            Self::ant_forward(ant, &app.ant_sim.grid);
         }
 
         app.ant_sim.generation += 1;
@@ -113,17 +162,17 @@ impl AntSim {
                 };
             }
             Direction::Up => {
-                ant.y = if ant.y > 0 {
-                    ant.y - 1
-                } else {
-                    grid.cells.len() - 1
-                };
-            }
-            Direction::Down => {
                 ant.y = if ant.y < (grid.cells.len() - 1) {
                     ant.y + 1
                 } else {
                     0
+                };
+            }
+            Direction::Down => {
+                ant.y = if ant.y > 0 {
+                    ant.y - 1
+                } else {
+                    grid.cells.len() - 1
                 };
             }
         }
@@ -166,33 +215,8 @@ impl AntSim {
     pub fn ant_turn(ant: &mut Ant, grid: &Grid, states: &Vec<Color>, rules: &Vec<Direction>) {
         for (state, rule) in states.iter().zip(rules.iter()) {
             if grid.cells[ant.y][ant.x] == *state {
-                match rule {
-                    Direction::Left => {
-                        ant.direction = match ant.direction {
-                            Direction::Left => Direction::Down,
-                            Direction::Right => Direction::Up,
-                            Direction::Up => Direction::Left,
-                            Direction::Down => Direction::Right,
-                        };
-                    }
-                    Direction::Right => {
-                        ant.direction = match ant.direction {
-                            Direction::Left => Direction::Up,
-                            Direction::Right => Direction::Down,
-                            Direction::Up => Direction::Right,
-                            Direction::Down => Direction::Left,
-                        };
-                    }
-                    Direction::Down => {
-                        ant.direction = match ant.direction {
-                            Direction::Left => Direction::Right,
-                            Direction::Right => Direction::Left,
-                            Direction::Up => Direction::Down,
-                            Direction::Down => Direction::Up,
-                        };
-                    }
-                    _ => {}
-                }
+                ant.direction = ant.direction.turn(rule);
+                break;
             }
         }
     }
