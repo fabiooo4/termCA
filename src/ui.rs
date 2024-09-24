@@ -77,28 +77,11 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             .position(Position::Bottom)
             .alignment(Alignment::Right);
 
-            let top_left_debug = Title::from(Line::from(vec![
-                "(".into(),
-                app.ant_sim.ants[0].x.to_string().yellow(),
-                ",".into(),
-                app.ant_sim.ants[0].y.to_string().yellow(),
-                ")".into(),
-                " ".into(),
-                app.ant_sim.ants[0].direction.to_string().yellow(),
-                " ".into(),
-                Span::styled(
-                    app.ant_sim.states[app.ant_sim.generation % app.ant_sim.states.len()]
-                        .to_string(),
-                    Style::default().fg(app.ant_sim.states[app.ant_sim.generation % app.ant_sim.states.len()]),
-                ),
-            ]));
-
             let ant_canvas = Canvas::default()
                 .block(
                     Block::default()
                         .border_type(BorderType::Double)
                         .borders(Borders::ALL)
-                        .title(top_left_debug)
                         .title(top_title)
                         .title(bottom_left_title)
                         .title(bottom_right_title)

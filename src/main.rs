@@ -31,7 +31,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
         match app.current_screen {
             CurrentScreen::Exit => break Ok(()),
             CurrentScreen::Ant => {
-                if app.is_running {
+                if app.is_running && !app.help_screen {
                     // Run Langton's Ant
                     AntSim::run_ant_sim(app);
                 }
@@ -53,7 +53,6 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
             if app.help_screen {
                 // Prevent any action when the help screen is displayed
                 app.help_screen = false;
-                app.is_running = true;
             } else {
                 match app.current_screen {
                     CurrentScreen::Ant => match key.code {
@@ -61,7 +60,6 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                         KeyCode::Char(' ') => app.is_running = !app.is_running,
                         KeyCode::Char('?') => {
                             app.help_screen = !app.help_screen;
-                            app.is_running = false;
                         }
                         KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
                             AntSim::run_ant_sim(app);
