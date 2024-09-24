@@ -1,7 +1,9 @@
-use rand::{prelude::Distribution, Rng};
+use std::fmt::{self, Display, Formatter};
+
+use rand::Rng;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Color, Style, Styled, Stylize},
+    style::{Color, Style, Stylize},
     text::{Line, Span},
     widgets::{
         block::{Position, Title},
@@ -20,21 +22,25 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     // Render widgets
     match app.current_screen {
         CurrentScreen::Ant => {
-            let width = f64::from(frame.area().width - 2);
-            let height = f64::from((frame.area().height - 2) * 2);
+            // Initialize the ant simulation if it's not already
+            if let None = app.ant_sim {
+                app.start_ant_default();
 
-            if app.ant_sim.grid.cells.is_empty() {
-                // Initialize grid
-                app.ant_sim.grid.cells =
-                    vec![vec![app.ant_sim.states[0]; width as usize]; height as usize];
+                let width = f64::from(frame.area().width - 2);
+                let height = f64::from((frame.area().height - 2) * 2);
+                let ant_sim = app.ant_sim.as_mut().unwrap();
 
-                // Initialize ruleset
-                app.ant_sim.rules = AntSim::parse_ant_ruleset(&app.ant_sim.rules_input);
+                // Initialize the grid with the same size as the canvas
+                ant_sim.grid.cells = vec![vec![ant_sim.states[0]; width as usize]; height as usize];
+
+                // Change default ruleset
+                ant_sim.rules_input = String::from("RRLLLRLLLLLLLLL");
+                ant_sim.rules = AntSim::parse_ant_ruleset(&ant_sim.rules_input);
 
                 // Set ant position randomly biased towards the center
                 let mut rng = rand::thread_rng();
 
-                for ant in &mut app.ant_sim.ants {
+                for ant in &mut ant_sim.ants {
                     ant.x = rng.gen_range((width * 0.4) as usize..(width - width * 0.4) as usize)
                         as usize;
                     ant.y = rng.gen_range((height * 0.4) as usize..(height - height * 0.4) as usize)
@@ -42,7 +48,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 }
 
                 // Set ant direction randomly
-                for ant in &mut app.ant_sim.ants {
+                for ant in &mut ant_sim.ants {
                     let direction = rng.gen_range(0..4);
                     ant.direction = match direction {
                         0 => crate::simulations::ant::Direction::Left,
@@ -54,13 +60,20 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 }
             }
 
+            // From here `app.ant_sim` is `Some`
+            let ant_sim = app.ant_sim.as_ref().unwrap();
+
+            /////////////////////////////
+            // Border content
+            /////////////////////////////
+
             let top_title = Title::from(Line::from(vec![" Langton's Ant ".yellow()]))
                 .position(Position::Top)
                 .alignment(Alignment::Center);
 
             let bottom_left_title = Title::from(Line::from(vec![
                 " Generation: ".into(),
-                app.ant_sim.generation.to_string().yellow(),
+                ant_sim.generation.to_string().yellow(),
                 " ".into(),
             ]))
             .position(Position::Bottom);
@@ -71,17 +84,40 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
             let bottom_right_title = Title::from(Line::from(vec![
                 " Speed: ".into(),
-                app.speed.as_millis().to_string().yellow(),
-                " ms ".into(),
+                if app.speed.as_millis() == 0 {
+                    format!("{}x ", app.speed_multiplier).yellow()
+                } else {
+                    format!("{}ms ", app.speed.as_millis()).yellow()
+                },
             ]))
             .position(Position::Bottom)
             .alignment(Alignment::Right);
+
+            /* let top_left_debug = Title::from(Line::from(vec![
+                "(".into(),
+                ant_sim.ants[0].x.to_string().yellow(),
+                ",".into(),
+                ant_sim.ants[0].y.to_string().yellow(),
+                ")".into(),
+                " ".into(),
+                ant_sim.ants[0].direction.to_string().yellow(),
+                " ".into(),
+                Span::styled(
+                    ant_sim.states[ant_sim.generation % ant_sim.states.len()].to_string(),
+                    Style::default().fg(ant_sim.states[ant_sim.generation % ant_sim.states.len()]),
+                ),
+            ])); */
+
+            /////////////////////////////
+            // Simulation canvas
+            /////////////////////////////
 
             let ant_canvas = Canvas::default()
                 .block(
                     Block::default()
                         .border_type(BorderType::Double)
                         .borders(Borders::ALL)
+                        // .title(top_left_debug)
                         .title(top_title)
                         .title(bottom_left_title)
                         .title(bottom_right_title)
@@ -91,7 +127,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .marker(app.marker)
                 .paint(|ctx| {
                     // Draw grid
-                    for (y, row) in app.ant_sim.grid.cells.iter().enumerate() {
+                    for (y, row) in ant_sim.grid.cells.iter().enumerate() {
                         for (x, cell) in row.iter().enumerate() {
                             match *cell {
                                 // Skip drawing black cells
@@ -107,7 +143,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                     }
 
                     // Draw ant
-                    for ant in app.ant_sim.ants.iter() {
+                    for ant in ant_sim.ants.iter() {
                         ctx.draw(&Points {
                             coords: &[(ant.x as f64, ant.y as f64)],
                             color: ant.color,
@@ -118,6 +154,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .y_bounds([0., f64::from(((frame.area().height - 2) * 2) - 1)]);
 
             frame.render_widget(ant_canvas, frame.area());
+
+            /////////////////////////////
+            // Help screen
+            /////////////////////////////
 
             let keys = vec![
                 Line::from("Q ".yellow()),

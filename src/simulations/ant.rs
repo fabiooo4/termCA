@@ -1,18 +1,20 @@
 use std::fmt::{self, Display, Formatter};
 
+use crate::app::App;
 use ratatui::style::Color;
 
-use crate::app::App;
-
+/// Struct that holds the ant simulation data
 pub struct AntSim {
-    pub ants: Vec<Ant>,      // Langton's Ant
+    pub ants: Vec<Ant>,
+    /// Vector that holds the ants
     pub rules_input: String, // Ant ruleset
-    pub grid: Grid,          // Grid of cells
-    pub states: Vec<Color>,
-    pub rules: Vec<Direction>,
-    pub generation: usize, // Number of generations
+    pub grid: Grid,            // Grid of cells
+    pub states: Vec<Color>,    // Possible states of the cells
+    pub rules: Vec<Direction>, // Rules for the ant
+    pub generation: usize,     // Number of generations
 }
 
+/// Struct that holds the ant data
 pub struct Ant {
     pub x: usize,
     pub y: usize,
@@ -21,6 +23,7 @@ pub struct Ant {
 }
 
 impl Ant {
+    /// Constructs a new empty `Ant`
     pub fn new() -> Self {
         Ant {
             x: 0,
@@ -31,7 +34,15 @@ impl Ant {
     }
 }
 
-#[derive(Debug)]
+/// Enum that represents the 2D directions
+/// ```plain
+///     U
+///     |
+/// L --|-- R
+///     |
+///     D
+/// ```
+#[derive(Clone, Copy)]
 pub enum Direction {
     Left,
     Right,
@@ -40,6 +51,7 @@ pub enum Direction {
 }
 
 impl Direction {
+    /// Returns the direction to the left of the current direction
     pub fn turn_left(&self) -> Self {
         match self {
             Direction::Left => Direction::Down,
@@ -49,6 +61,7 @@ impl Direction {
         }
     }
 
+    /// Returns the direction to the right of the current direction
     pub fn turn_right(&self) -> Self {
         match self {
             Direction::Left => Direction::Up,
@@ -58,6 +71,7 @@ impl Direction {
         }
     }
 
+    /// Returns the opposite direction of the current direction
     pub fn turn_opposite(&self) -> Self {
         match self {
             Direction::Left => Direction::Right,
@@ -67,11 +81,16 @@ impl Direction {
         }
     }
 
+    /// Returns the direction relative to the current direction
+    /// - `Left` -> turn left
+    /// - `Right` -> turn right
+    /// - `Up` -> continue in the same direction
+    /// - `Down` -> turn opposite
     pub fn turn(&self, direction: &Direction) -> Self {
         match direction {
             Direction::Left => self.turn_left(),
             Direction::Right => self.turn_right(),
-            Direction::Up => Direction::Up,
+            Direction::Up => *self,
             Direction::Down => self.turn_opposite(),
         }
     }
@@ -80,33 +99,50 @@ impl Direction {
 impl Display for Direction {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            Direction::Left => write!(f, "Left"),
-            Direction::Right => write!(f, "Right"),
-            Direction::Up => write!(f, "Up"),
-            Direction::Down => write!(f, "Down"),
+            Direction::Left => write!(f, "←"),
+            Direction::Right => write!(f, "→"),
+            Direction::Up => write!(f, "↑"),
+            Direction::Down => write!(f, "↓"),
         }
     }
 }
 
+/// Struct that represents a grid of cells
 pub struct Grid {
     pub cells: Vec<Vec<Color>>,
 }
 
 impl Grid {
+    /// Constructs a new empty `Grid`
     pub fn new() -> Self {
         Grid { cells: Vec::new() }
     }
 }
 
 impl AntSim {
+    /// Parses the ant ruleset from a string
+    /// - `L` -> turn left
+    /// - `R` -> turn right
+    /// - `F` -> continue in the same direction (Forward)
+    /// - `B` -> turn opposite (Backward)
+    ///
+    /// # Example
+    /// ```
+    /// assert_eq!(parse_ant_ruleset("LRFB"), vec![
+    ///    Direction::Left,
+    ///    Direction::Right,
+    ///    Direction::Up,
+    ///    Direction::Down,
+    /// ]);
+    /// ```
     pub fn parse_ant_ruleset(rules: &str) -> Vec<Direction> {
         let mut ruleset = Vec::new();
-        for c in rules.chars() {
+        for c in rules.to_uppercase().chars() {
             match c {
                 'L' => ruleset.push(Direction::Left),
                 'R' => ruleset.push(Direction::Right),
-                'F' => ruleset.push(Direction::Down),
-                'B' => ruleset.push(Direction::Up),
+                'F' => ruleset.push(Direction::Up),
+                'B' => ruleset.push(Direction::Down),
                 _ => {}
             }
         }
@@ -114,39 +150,23 @@ impl AntSim {
         ruleset
     }
 
+    /// Standard Langton's Ant simulation
     pub fn run_ant_sim(app: &mut App) {
-        for ant in app.ant_sim.ants.iter_mut() {
-            Self::ant_turn(
-                ant,
-                &app.ant_sim.grid,
-                &app.ant_sim.states,
-                &app.ant_sim.rules,
-            );
-            Self::ant_flip(
-                ant,
-                &mut app.ant_sim.grid,
-                &app.ant_sim.states,
-                &app.ant_sim.rules,
-            );
-            Self::ant_forward(ant, &app.ant_sim.grid);
+        if let Some(ref mut ant_sim) = app.ant_sim {
+            for ant in ant_sim.ants.iter_mut() {
+                for _ in 0..app.speed_multiplier {
+                    Self::ant_turn(ant, &ant_sim.grid, &ant_sim.states, &ant_sim.rules);
+                    Self::ant_flip(ant, &mut ant_sim.grid, &ant_sim.states, &ant_sim.rules);
+                    Self::ant_forward(ant, &ant_sim.grid);
+                }
+            }
+            ant_sim.generation = ant_sim.generation.saturating_add(1 * app.speed_multiplier);
         }
-
-        app.ant_sim.generation += 1;
     }
 
-    /* pub fn run_ant_sim_reverse(app: &mut App) {
-        for ant in app.ant_sim.ants.iter_mut() {
-            ant_backward(ant, &app.ant_sim.grid);
-            ant_turn_reverse(ant, &app.ant_sim.grid, &app.ant_sim.states, &app.ant_sim.rules);
-            ant_flip_reverse(ant, &mut app.ant_sim.grid, &app.ant_sim.states, &app.ant_sim.rules);
-        }
-
-        app.ant_sim.generation -= 1;
-    } */
-
+    /// Moves the ant forward based on its direction with grid wrapping
     pub fn ant_forward(ant: &mut Ant, grid: &Grid) {
         match ant.direction {
-            // Wrap around the grid
             Direction::Left => {
                 ant.x = if ant.x > 0 {
                     ant.x - 1
@@ -178,40 +198,7 @@ impl AntSim {
         }
     }
 
-    /* pub fn ant_backward(ant: &mut Ant, grid: &Grid) {
-        match ant.direction {
-            // Wrap around the grid
-            Direction::Left => {
-                ant.x = if ant.x < (grid.cells[0].len() - 1) as f64 {
-                    ant.x + 1.0
-                } else {
-                    0.0
-                };
-            }
-            Direction::Right => {
-                ant.x = if ant.x > 0.0 {
-                    ant.x - 1.0
-                } else {
-                    grid.cells[0].len() as f64 - 1.0
-                };
-            }
-            Direction::Up => {
-                ant.y = if ant.y < (grid.cells.len() - 1) as f64 {
-                    ant.y + 1.0
-                } else {
-                    0.0
-                };
-            }
-            Direction::Down => {
-                ant.y = if ant.y > 0.0 {
-                    ant.y - 1.0
-                } else {
-                    grid.cells.len() as f64 - 1.0
-                };
-            }
-        }
-    } */
-
+    /// Turns the ant based on the current cell state and rule
     pub fn ant_turn(ant: &mut Ant, grid: &Grid, states: &Vec<Color>, rules: &Vec<Direction>) {
         for (state, rule) in states.iter().zip(rules.iter()) {
             if grid.cells[ant.y][ant.x] == *state {
@@ -221,15 +208,15 @@ impl AntSim {
         }
     }
 
+    /// Flips the current cell state based on the rule
     pub fn ant_flip(ant: &Ant, grid: &mut Grid, states: &Vec<Color>, rules: &Vec<Direction>) {
-        let states = states.clone();
         let rules_len = rules.len();
         let mut states = states[0..rules_len].iter().cycle();
 
         // Assign the next state to the current cell
         while let Some(state) = states.next() {
             if grid.cells[ant.y][ant.x] == *state {
-                grid.cells[ant.y][ant.x] = states.next().unwrap().clone();
+                grid.cells[ant.y][ant.x] = *states.next().unwrap();
                 break;
             }
         }
