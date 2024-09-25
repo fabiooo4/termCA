@@ -6,6 +6,7 @@ use crate::app::App;
 use crate::ui::ui;
 use app::CurrentScreen;
 use crossterm::event::{self, Event, KeyCode};
+use ratatui::style::Color;
 use ratatui::DefaultTerminal;
 use simulations::ant::AntSim;
 use std::io::{self};
@@ -39,78 +40,110 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
             _ => {}
         }
 
-        // Only run when a key is pressed
+        // Only run when an event is available
         if !is_event_available(app.speed)? {
             continue;
         }
 
-        if let Event::Key(key) = event::read()? {
-            if key.kind == event::KeyEventKind::Release {
-                // Skip events that are not KeyEventKind::Press
-                continue;
-            }
+        match event::read()? {
+            Event::Resize(new_width, new_height) => match app.current_screen {
+                CurrentScreen::Ant => {
+                    let new_width: usize = new_width as usize - 2;
+                    let new_height: usize = (new_height as usize - 2) * 2;
 
-            if app.help_screen {
-                // Prevent any action when the help screen is displayed
-                app.help_screen = false;
-                continue;
-            }
+                    // Reposition the ant in the view if it is out of bounds
+                    for ant in app.ant_sim.as_mut().unwrap().ants.iter_mut() {
+                        if ant.x >= new_width {
+                            ant.x = new_width - 1;
+                        }
 
-            match app.current_screen {
-                CurrentScreen::Ant => match key.code {
-                    KeyCode::Char('q') => app.current_screen = CurrentScreen::Exit,
-                    KeyCode::Char(' ') => app.is_running = !app.is_running,
-                    KeyCode::Char('?') => {
-                        app.help_screen = !app.help_screen;
-                    }
-                    KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
-                        // Run simulation once
-                        AntSim::run_ant_sim(app);
-                    }
-                    KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
-                        // Increase simulation speed
-                        if app.speed > Duration::from_millis(100) {
-                            app.speed = app.speed.saturating_sub(Duration::from_millis(100));
-                        } else if app.speed > Duration::from_millis(10) {
-                            app.speed = app.speed.saturating_sub(Duration::from_millis(10));
-                        } else if app.speed > Duration::from_millis(0) {
-                            app.speed = app.speed.saturating_sub(Duration::from_millis(1));
-                        } else {
-                            if app.speed_multiplier < 10 {
-                                app.speed_multiplier = app.speed_multiplier.saturating_add(1);
-                            } else if app.speed_multiplier < 100 {
-                                app.speed_multiplier = app.speed_multiplier.saturating_add(10);
-                            } else if app.speed_multiplier < 1000 {
-                                app.speed_multiplier = app.speed_multiplier.saturating_add(100);
-                            } else {
-                                app.speed_multiplier = app.speed_multiplier.saturating_add(1000);
-                            }
+                        if ant.y >= new_height {
+                            ant.y = new_height - 1;
                         }
                     }
-                    KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => {
-                        // Decrease simulation speed
-                        if app.speed_multiplier > 1 {
-                            if app.speed_multiplier > 1000 {
-                                app.speed_multiplier = app.speed_multiplier.saturating_sub(1000);
-                            } else if app.speed_multiplier > 100 {
-                                app.speed_multiplier = app.speed_multiplier.saturating_sub(100);
-                            } else if app.speed_multiplier > 10 {
-                                app.speed_multiplier = app.speed_multiplier.saturating_sub(10);
-                            } else {
-                                app.speed_multiplier = app.speed_multiplier.saturating_sub(1);
-                            }
-                        } else if app.speed < Duration::from_millis(10) {
-                            app.speed = app.speed.saturating_add(Duration::from_millis(1));
-                        } else if app.speed < Duration::from_millis(100) {
-                            app.speed = app.speed.saturating_add(Duration::from_millis(10));
-                        } else {
-                            app.speed = app.speed.saturating_add(Duration::from_millis(100));
-                        }
-                    }
-                    _ => {}
-                },
+
+                    // Resize the grid
+                    app.ant_sim
+                        .as_mut()
+                        .unwrap()
+                        .grid
+                        .resize(new_width, new_height, Color::Reset);
+
+                }
                 _ => {}
+            },
+
+            Event::Key(key) => {
+                if key.kind == event::KeyEventKind::Release {
+                    // Skip events that are not KeyEventKind::Press
+                    continue;
+                }
+
+                if app.help_screen {
+                    // Prevent any action when the help screen is displayed
+                    app.help_screen = false;
+                    continue;
+                }
+
+                match app.current_screen {
+                    CurrentScreen::Ant => match key.code {
+                        KeyCode::Char('q') => app.current_screen = CurrentScreen::Exit,
+                        KeyCode::Char(' ') => app.is_running = !app.is_running,
+                        KeyCode::Char('?') => {
+                            app.help_screen = !app.help_screen;
+                        }
+                        KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
+                            // Run simulation once
+                            AntSim::run_ant_sim(app);
+                        }
+                        KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
+                            // Increase simulation speed
+                            if app.speed > Duration::from_millis(100) {
+                                app.speed = app.speed.saturating_sub(Duration::from_millis(100));
+                            } else if app.speed > Duration::from_millis(10) {
+                                app.speed = app.speed.saturating_sub(Duration::from_millis(10));
+                            } else if app.speed > Duration::from_millis(0) {
+                                app.speed = app.speed.saturating_sub(Duration::from_millis(1));
+                            } else {
+                                if app.speed_multiplier < 10 {
+                                    app.speed_multiplier = app.speed_multiplier.saturating_add(1);
+                                } else if app.speed_multiplier < 100 {
+                                    app.speed_multiplier = app.speed_multiplier.saturating_add(10);
+                                } else if app.speed_multiplier < 1000 {
+                                    app.speed_multiplier = app.speed_multiplier.saturating_add(100);
+                                } else {
+                                    app.speed_multiplier =
+                                        app.speed_multiplier.saturating_add(1000);
+                                }
+                            }
+                        }
+                        KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => {
+                            // Decrease simulation speed
+                            if app.speed_multiplier > 1 {
+                                if app.speed_multiplier > 1000 {
+                                    app.speed_multiplier =
+                                        app.speed_multiplier.saturating_sub(1000);
+                                } else if app.speed_multiplier > 100 {
+                                    app.speed_multiplier = app.speed_multiplier.saturating_sub(100);
+                                } else if app.speed_multiplier > 10 {
+                                    app.speed_multiplier = app.speed_multiplier.saturating_sub(10);
+                                } else {
+                                    app.speed_multiplier = app.speed_multiplier.saturating_sub(1);
+                                }
+                            } else if app.speed < Duration::from_millis(10) {
+                                app.speed = app.speed.saturating_add(Duration::from_millis(1));
+                            } else if app.speed < Duration::from_millis(100) {
+                                app.speed = app.speed.saturating_add(Duration::from_millis(10));
+                            } else {
+                                app.speed = app.speed.saturating_add(Duration::from_millis(100));
+                            }
+                        }
+                        _ => {}
+                    },
+                    _ => {}
+                }
             }
+            _ => {}
         }
     }
 }

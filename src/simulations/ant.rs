@@ -117,6 +117,16 @@ impl Grid {
     pub fn new() -> Self {
         Grid { cells: Vec::new() }
     }
+
+    // Resizes the grid in-place by providing the new dimensions and a new state
+    pub fn resize(&mut self, new_width: usize, new_height: usize, new_state: Color) {
+        for row in self.cells.iter_mut() {
+            row.resize(new_width as usize, new_state);
+        }
+
+        self.cells
+            .resize(new_height as usize, vec![new_state; new_width as usize]);
+    }
 }
 
 impl AntSim {

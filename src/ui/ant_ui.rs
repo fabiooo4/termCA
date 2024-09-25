@@ -1,4 +1,4 @@
-use ratatui::Frame;
+use ratatui::{text::Span, Frame};
 
 
 use rand::Rng;
@@ -22,11 +22,12 @@ use super::centered_rect_length;
 
 pub fn ant_screen(frame: &mut Frame, app: &mut App) {
     // Initialize the ant simulation if it's not already
+    let width = f64::from(frame.area().width - 2);
+    let height = f64::from((frame.area().height - 2) * 2);
+
     if let None = app.ant_sim {
         app.start_ant_default();
 
-        let width = f64::from(frame.area().width - 2);
-        let height = f64::from((frame.area().height - 2) * 2);
         let ant_sim = app.ant_sim.as_mut().unwrap();
 
         // Initialize the grid with the same size as the canvas
@@ -91,11 +92,15 @@ pub fn ant_screen(frame: &mut Frame, app: &mut App) {
     .position(Position::Bottom)
     .alignment(Alignment::Right);
 
-    /* let top_left_debug = Title::from(Line::from(vec![
+    let top_left_debug = Title::from(Line::from(vec![
         "(".into(),
         ant_sim.ants[0].x.to_string().yellow(),
+        "/".into(),
+        ant_sim.grid.cells[0].len().to_string().red(),
         ",".into(),
         ant_sim.ants[0].y.to_string().yellow(),
+        "/".into(),
+        ant_sim.grid.cells.len().to_string().red(),
         ")".into(),
         " ".into(),
         ant_sim.ants[0].direction.to_string().yellow(),
@@ -104,7 +109,14 @@ pub fn ant_screen(frame: &mut Frame, app: &mut App) {
             ant_sim.states[ant_sim.generation % ant_sim.states.len()].to_string(),
             Style::default().fg(ant_sim.states[ant_sim.generation % ant_sim.states.len()]),
         ),
-    ])); */
+        " ".into(),
+        "[".into(),
+        width.to_string().red(),
+        ",".into(),
+        height.to_string().red(),
+        "]".into(),
+        " ".into(),
+    ]));
 
     /////////////////////////////
     // Simulation canvas

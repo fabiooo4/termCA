@@ -9,6 +9,7 @@ pub enum CurrentScreen {
     Exit,
 }
 
+
 /// Struct that holds the application data
 pub struct App {
     pub current_screen: CurrentScreen,
