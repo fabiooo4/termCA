@@ -76,13 +76,29 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                         } else if app.speed > Duration::from_millis(0) {
                             app.speed = app.speed.saturating_sub(Duration::from_millis(1));
                         } else {
-                            app.speed_multiplier = app.speed_multiplier.saturating_add(1);
+                            if app.speed_multiplier < 10 {
+                                app.speed_multiplier = app.speed_multiplier.saturating_add(1);
+                            } else if app.speed_multiplier < 100 {
+                                app.speed_multiplier = app.speed_multiplier.saturating_add(10);
+                            } else if app.speed_multiplier < 1000 {
+                                app.speed_multiplier = app.speed_multiplier.saturating_add(100);
+                            } else {
+                                app.speed_multiplier = app.speed_multiplier.saturating_add(1000);
+                            }
                         }
                     }
                     KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => {
                         // Decrease simulation speed
                         if app.speed_multiplier > 1 {
-                            app.speed_multiplier = app.speed_multiplier.saturating_sub(1);
+                            if app.speed_multiplier > 1000 {
+                                app.speed_multiplier = app.speed_multiplier.saturating_sub(1000);
+                            } else if app.speed_multiplier > 100 {
+                                app.speed_multiplier = app.speed_multiplier.saturating_sub(100);
+                            } else if app.speed_multiplier > 10 {
+                                app.speed_multiplier = app.speed_multiplier.saturating_sub(10);
+                            } else {
+                                app.speed_multiplier = app.speed_multiplier.saturating_sub(1);
+                            }
                         } else if app.speed < Duration::from_millis(10) {
                             app.speed = app.speed.saturating_add(Duration::from_millis(1));
                         } else if app.speed < Duration::from_millis(100) {
