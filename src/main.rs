@@ -68,7 +68,6 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                         .unwrap()
                         .grid
                         .resize(new_width, new_height, Color::Reset);
-
                 }
                 _ => {}
             },
@@ -86,8 +85,22 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                 }
 
                 match app.current_screen {
-                    CurrentScreen::Ant => match key.code {
+                    CurrentScreen::Main => match key.code {
                         KeyCode::Char('q') => app.current_screen = CurrentScreen::Exit,
+                        KeyCode::Char('h') | KeyCode::Left => app.select_none(),
+                        KeyCode::Char('j') | KeyCode::Down => app.select_next(),
+                        KeyCode::Char('k') | KeyCode::Up => app.select_previous(),
+                        KeyCode::Char('g') | KeyCode::Home => app.select_first(),
+                        KeyCode::Char('G') | KeyCode::End => app.select_last(),
+                        KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => {
+                            app.change_screen();
+                        }
+                        _ => {}
+                    },
+                    CurrentScreen::Ant => match key.code {
+                        KeyCode::Char('q') => {app.current_screen = CurrentScreen::Main;
+                            app.stop_all();
+                        }
                         KeyCode::Char(' ') => app.is_running = !app.is_running,
                         KeyCode::Char('?') => {
                             app.help_screen = !app.help_screen;
