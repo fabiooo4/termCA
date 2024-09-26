@@ -127,7 +127,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     ]))
     .position(Position::Bottom);
 
-    let key_hints = Title::from(Line::from(vec![" '?' ".yellow(), "Help ".into()]))
+    let key_help = Title::from(Line::from(vec![" '?' ".yellow(), "Help ".into()]))
         .position(Position::Bottom)
         .alignment(Alignment::Center);
 
@@ -181,7 +181,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
                 .title(top_title)
                 .title(bottom_left_title)
                 .title(bottom_right_title)
-                .title(key_hints)
+                .title(key_help)
                 .title_style(Style::default().bold()),
         )
         .marker(app.marker)

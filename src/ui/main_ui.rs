@@ -1,20 +1,22 @@
 use ratatui::{
     layout::{Flex, Rect},
-    widgets::{List, ListDirection, ListItem},
+    text::Line,
+    widgets::{
+        block::{Position, Title}, Clear, List, ListDirection, ListItem
+    },
     Frame,
 };
 
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Style, Stylize},
-    widgets::{
-        Block, BorderType, Borders, Paragraph,
-    },
+    widgets::{Block, BorderType, Borders, Paragraph},
 };
 use tui_big_text::{BigText, PixelSize};
 
 use crate::app::App;
 
+use super::centered_rect_length;
 
 pub fn main_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -57,7 +59,12 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Border
     /////////////////////////////
 
+    let key_help = Title::from(Line::from(vec![" '?' ".yellow(), "Help ".into()]))
+        .position(Position::Bottom)
+        .alignment(Alignment::Center);
+
     let border = Block::default()
+        .title(key_help)
         .borders(Borders::ALL)
         .border_type(BorderType::Double);
 
@@ -128,7 +135,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     frame.render_widget(list_border, horizontal_layout[1]);
 
-
     let mut sim_items: Vec<ListItem> = app
         .simulation_items
         .iter()
@@ -139,7 +145,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         vec![ListItem::from(vec!["Edit".into(), "".into()]); app.simulation_items.len() - 1];
 
     // Highlight added to the selected row, but on the column that is not selected
-    let partial_highlight = Style::default().white().bold().not_dim();
+    let partial_highlight = Style::default().white().bold();
 
     if let Some(idx) = app.settings_list_state.selected() {
         sim_items[idx] = sim_items[idx].clone().style(partial_highlight);
@@ -152,15 +158,75 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     }
 
     let sim_list = List::new(sim_items)
-        .style(Style::default().white().dim())
-        .highlight_style(Style::default().yellow().bold().not_dim())
+        .style(Style::default().white())
+        .highlight_style(Style::default().yellow().bold())
         .direction(ListDirection::TopToBottom);
 
     let settings_list = List::new(settings_items)
-        .style(Style::default().white().dim())
-        .highlight_style(Style::default().yellow().bold().not_dim())
+        .style(Style::default().white())
+        .highlight_style(Style::default().yellow().bold())
         .direction(ListDirection::TopToBottom);
 
     frame.render_stateful_widget(sim_list, list_layout[1], &mut app.sim_list_state);
     frame.render_stateful_widget(settings_list, list_layout[2], &mut app.settings_list_state);
+
+    /////////////////////////////
+    // Help screen
+    /////////////////////////////
+
+    let keys = vec![
+        Line::from("Q ".yellow()),
+        Line::from("? ".yellow()),
+        Line::from("Enter ".yellow()),
+        Line::from("K / ↑ ".yellow()),
+        Line::from("J / ↓ ".yellow()),
+        Line::from("L / → ".yellow()),
+        Line::from("H / ← ".yellow()),
+        Line::from("g ".yellow()),
+        Line::from("G ".yellow()),
+    ];
+
+    let labels = vec![
+        Line::from("Quit"),
+        Line::from("Help"),
+        Line::from("Select"),
+        Line::from("Scroll Up"),
+        Line::from("Scroll Down"),
+        Line::from("Scroll Right"),
+        Line::from("Scroll Left"),
+        Line::from("Scroll to Bottom"),
+        Line::from("Scroll to Top"),
+    ];
+
+    let help_area = centered_rect_length(27, (keys.len() + 4) as u16, frame.area());
+    let help_block = Block::default()
+        .title(" Help ".yellow().bold())
+        .title_alignment(Alignment::Center)
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .style(Style::default());
+
+    let help_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(2),
+            Constraint::Min(keys.len() as u16),
+            Constraint::Length(2),
+        ])
+        .split(help_area);
+
+    let help_center = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(35), Constraint::Percentage(65)])
+        .split(help_layout[1]);
+
+    let help_keys = Paragraph::new(keys).alignment(Alignment::Right);
+    let help_labels = Paragraph::new(labels).alignment(Alignment::Left);
+
+    if app.help_screen {
+        frame.render_widget(Clear, help_area);
+        frame.render_widget(help_block, help_area);
+        frame.render_widget(help_keys, help_center[0]);
+        frame.render_widget(help_labels, help_center[1]);
+    }
 }

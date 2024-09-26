@@ -73,7 +73,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
             },
 
             Event::Key(key) => {
-                if key.kind == event::KeyEventKind::Release {
+                if key.kind != event::KeyEventKind::Press {
                     // Skip events that are not KeyEventKind::Press
                     continue;
                 }
@@ -86,14 +86,25 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
 
                 match app.current_screen {
                     CurrentScreen::Main => match key.code {
-                        KeyCode::Char('q') => app.current_screen = CurrentScreen::Exit,
-                        KeyCode::Char('h') | KeyCode::Left => {
+                        KeyCode::Char('q') | KeyCode::Char('Q') => {
+                            app.current_screen = CurrentScreen::Exit
+                        }
+                        KeyCode::Char('?') => {
+                            app.help_screen = !app.help_screen;
+                        }
+                        KeyCode::Char('h') | KeyCode::Char('H') | KeyCode::Left => {
                             if !app.settings_list_state.selected().is_none() {
                                 app.sim_select_idx(app.settings_list_state.selected());
                                 app.settings_select_none();
                             }
                         }
-                        KeyCode::Char('j') | KeyCode::Down => {
+                        KeyCode::Char('l') | KeyCode::Char('L') | KeyCode::Right => {
+                            if !app.sim_list_state.selected().is_none() {
+                                app.settings_select_idx(app.sim_list_state.selected());
+                                app.sim_select_none();
+                            }
+                        }
+                        KeyCode::Char('j') | KeyCode::Char('J') | KeyCode::Down => {
                             if app.sim_list_state.selected().is_none()
                                 && app.settings_list_state.selected().is_none()
                             {
@@ -110,7 +121,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                                 app.sim_select_next();
                             }
                         }
-                        KeyCode::Char('k') | KeyCode::Up => {
+                        KeyCode::Char('k') | KeyCode::Char('K') | KeyCode::Up => {
                             if app.sim_list_state.selected().is_none()
                                 && app.settings_list_state.selected().is_none()
                             {
@@ -153,12 +164,6 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                                 app.sim_select_last();
                             }
                         }
-                        KeyCode::Char('l') | KeyCode::Right => {
-                            if !app.sim_list_state.selected().is_none() {
-                                app.settings_select_idx(app.sim_list_state.selected());
-                                app.sim_select_none();
-                            }
-                        }
                         KeyCode::Enter => {
                             if !app.sim_list_state.selected().is_none() {
                                 app.change_screen();
@@ -168,23 +173,25 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                                 match app.simulation_items[i].screen {
                                     CurrentScreen::Ant => {
                                         let mut ant_sim_options = AntSim::default();
-                                        ant_sim_options.ants = vec![
-                                            Ant::new(10000, 10000, Direction::Up),
-                                        ];
+                                        ant_sim_options.ants =
+                                            vec![Ant::new(10000, 10000, Direction::Up)];
 
-                                        ant_sim_options.rules = AntSim::parse_ant_ruleset("RRLLLRLLLRRR");
+                                        ant_sim_options.rules =
+                                            AntSim::parse_ant_ruleset("RRLLLRLLLRRR");
 
                                         app.start_ant(ant_sim_options);
                                         app.change_screen();
                                     }
-                                    _ => {app.change_screen();}
+                                    _ => {
+                                        app.change_screen();
+                                    }
                                 }
                             }
                         }
                         _ => {}
                     },
                     CurrentScreen::Ant => match key.code {
-                        KeyCode::Char('q') => {
+                        KeyCode::Char('q') | KeyCode::Char('Q') => {
                             app.current_screen = CurrentScreen::Main;
                             app.stop_all();
                         }
