@@ -160,7 +160,7 @@ impl Grid {
         Grid { cells: Vec::new() }
     }
 
-    // Resizes the grid in-place by providing the new dimensions and a new state
+    /// Resizes the grid in-place by providing the new dimensions and a new state
     pub fn resize(&mut self, new_width: usize, new_height: usize, new_state: Color) {
         for row in self.cells.iter_mut() {
             row.resize(new_width as usize, new_state);
@@ -168,6 +168,24 @@ impl Grid {
 
         self.cells
             .resize(new_height as usize, vec![new_state; new_width as usize]);
+    }
+
+    /// Returns the width of the grid
+    pub fn width(&self) -> usize {
+        if self.cells.is_empty() {
+            0
+        } else {
+            self.cells[0].len()
+        }
+    }
+
+    /// Returns the height of the grid
+    pub fn height(&self) -> usize {
+        if self.cells.is_empty() {
+            0
+        } else {
+            self.cells.len()
+        }
     }
 }
 
@@ -223,7 +241,7 @@ impl AntSim {
                 ant.x = if ant.x > 0 {
                     ant.x - 1
                 } else {
-                    grid.cells[0].len() - 1
+                    grid.width() - 1
                 };
             }
             Direction::Right => {
@@ -244,7 +262,7 @@ impl AntSim {
                 ant.y = if ant.y > 0 {
                     ant.y - 1
                 } else {
-                    grid.cells.len() - 1
+                    grid.height() - 1
                 };
             }
         }

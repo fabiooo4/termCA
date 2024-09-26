@@ -96,6 +96,17 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
         // Initialize the grid with the same size as the canvas
         ant_sim.grid.cells = vec![vec![ant_sim.states[0]; width as usize]; height as usize];
+
+        // Reposition the ant inside the bounds if it is outside
+        for ant in ant_sim.ants.iter_mut() {
+            if ant.x > width as usize {
+                ant.x = width as usize / 2;
+            }
+
+            if ant.y > height as usize {
+                ant.y = height as usize / 2;
+            }
+        }
     }
 
     // From here `app.ant_sim` is `Some`
@@ -135,11 +146,11 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         "(".into(),
         ant_sim.ants[0].x.to_string().yellow(),
         "/".into(),
-        ant_sim.grid.cells[0].len().to_string().red(),
+        ant_sim.grid.width().to_string().red(),
         ",".into(),
         ant_sim.ants[0].y.to_string().yellow(),
         "/".into(),
-        ant_sim.grid.cells.len().to_string().red(),
+        ant_sim.grid.height().to_string().red(),
         ")".into(),
         " ".into(),
         ant_sim.ants[0].direction.to_string().yellow(),

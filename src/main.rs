@@ -8,7 +8,7 @@ use app::CurrentScreen;
 use crossterm::event::{self, Event, KeyCode};
 use ratatui::style::Color;
 use ratatui::DefaultTerminal;
-use simulations::ant::{Ant, AntSim, Direction, Grid};
+use simulations::ant::{Ant, AntSim, Direction};
 use std::io::{self};
 use std::time::Duration;
 
@@ -162,31 +162,23 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                         KeyCode::Enter => {
                             if !app.sim_list_state.selected().is_none() {
                                 app.change_screen();
-                            } else {
-                                let mut ant_sim_options = AntSim::default();
-                                ant_sim_options.ants = vec![
-                                    Ant::new(20, 15, Direction::Up),
-                                    Ant::new(21, 13, Direction::Up),
-                                    Ant::new(23, 15, Direction::Up),
-                                    Ant::new(24, 13, Direction::Up),
-                                    Ant::new(26, 15, Direction::Up),
-                                    Ant::new(27, 13, Direction::Up),
-                                    Ant::new(29, 15, Direction::Up),
-                                    Ant::new(30, 13, Direction::Up),
-                                    Ant::new(32, 15, Direction::Up),
-                                    Ant::new(33, 13, Direction::Up),
-                                    Ant::new(35, 15, Direction::Up),
-                                    Ant::new(36, 13, Direction::Up),
-                                    Ant::new(38, 15, Direction::Up),
-                                    Ant::new(39, 13, Direction::Up),
-                                    Ant::new(41, 15, Direction::Up),
-                                    Ant::new(42, 13, Direction::Up),
-                                ];
+                            }
 
-                                ant_sim_options.rules = AntSim::parse_ant_ruleset("RL");
+                            if let Some(i) = app.settings_list_state.selected() {
+                                match app.simulation_items[i].screen {
+                                    CurrentScreen::Ant => {
+                                        let mut ant_sim_options = AntSim::default();
+                                        ant_sim_options.ants = vec![
+                                            Ant::new(10000, 10000, Direction::Up),
+                                        ];
 
-                                app.start_ant(ant_sim_options);
-                                app.change_screen();
+                                        ant_sim_options.rules = AntSim::parse_ant_ruleset("RRLLLRLLLRRR");
+
+                                        app.start_ant(ant_sim_options);
+                                        app.change_screen();
+                                    }
+                                    _ => {app.change_screen();}
+                                }
                             }
                         }
                         _ => {}
