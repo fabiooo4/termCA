@@ -1,5 +1,5 @@
 use ratatui::{
-    layout::{Margin, Rect},
+    layout::{Flex, Margin, Rect},
     style::Modifier,
     text::Span,
     widgets::{List, ListDirection, ListItem, Padding},
@@ -77,28 +77,35 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .direction(Direction::Vertical)
         .margin(3)
         .constraints([
-            Constraint::Min(2),
-            Constraint::Length(4),
-            Constraint::Length(1),
-            Constraint::Min(3),
-            Constraint::Percentage(50),
+            Constraint::Min(0),    // Spacing
+            Constraint::Length(4), // Title
+            Constraint::Length(1), // Subtitle
+            Constraint::Max(3),    // Spacing
+            Constraint::Min(5),    // List block
+            Constraint::Min(0),    // Spacing
         ])
         .split(frame.area());
 
     let horizontal_layout = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
-            Constraint::Min(3),
-            Constraint::Percentage(30),
-            Constraint::Min(3),
+            Constraint::Min(1),
+            Constraint::Length(23),
+            Constraint::Min(1),
         ])
         .split(vertical_layout[4]);
 
     let list_layout = Layout::default()
         .direction(Direction::Horizontal)
+        .flex(Flex::Center)
         .vertical_margin(1)
-        .horizontal_margin(2)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .spacing(2)
+        .constraints([
+            Constraint::Length(0),
+            Constraint::Length(13),
+            Constraint::Length(4),
+            Constraint::Length(0),
+        ])
         .split(horizontal_layout[1]);
 
     /////////////////////////////
@@ -128,25 +135,37 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     frame.render_widget(list_border, horizontal_layout[1]);
 
-    let sim_items: Vec<ListItem> = app
+    let partial_highlight = Style::default().white().bold().not_dim();
+
+    let mut sim_items: Vec<ListItem> = app
         .simulation_items
         .iter()
         .map(|item| item.item.clone())
         .collect();
 
+    let mut settings_items: Vec<ListItem> =
+        vec![ListItem::from(vec!["Edit".into(), "".into()]); app.simulation_items.len() - 1];
+
+    if let Some(idx) = app.settings_list_state.selected() {
+        sim_items[idx] = sim_items[idx].clone().style(partial_highlight);
+    }
+
+    if let Some(idx) = app.sim_list_state.selected() {
+        if idx < app.simulation_items.len() -1  {
+            settings_items[idx] = settings_items[idx].clone().style(partial_highlight);
+        }
+    }
+
     let sim_list = List::new(sim_items)
-        .style(Style::default().fg(Color::White))
-        .highlight_style(Style::default().yellow().bold())
+        .style(Style::default().white().dim())
+        .highlight_style(Style::default().yellow().bold().not_dim())
         .direction(ListDirection::TopToBottom);
 
-    let settings_list = List::new(vec![
-        ListItem::from(vec!["Edit".into(), "".into()]);
-        app.simulation_items.len()
-    ])
-    .style(Style::default().fg(Color::White))
-    .highlight_style(Style::default().yellow().bold())
+    let settings_list = List::new(settings_items)
+        .style(Style::default().white().dim())
+        .highlight_style(Style::default().yellow().bold().not_dim())
     .direction(ListDirection::TopToBottom);
 
-    frame.render_stateful_widget(sim_list, list_layout[0], &mut app.sim_list_state);
-    frame.render_stateful_widget(settings_list, list_layout[1], &mut app.settings_list_state);
+    frame.render_stateful_widget(sim_list, list_layout[1], &mut app.sim_list_state);
+    frame.render_stateful_widget(settings_list, list_layout[2], &mut app.settings_list_state);
 }

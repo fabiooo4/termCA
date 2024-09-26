@@ -1,6 +1,6 @@
 use crate::simulations::ant::{Ant, AntSim, Direction, Grid};
 use ratatui::{
-    style::Color,
+    style::{Color, Style},
     symbols::Marker,
     text::Line,
     widgets::{ListItem, ListState},
@@ -58,7 +58,6 @@ impl App<'_> {
                 SimulationItem {
                     item: ListItem::from(vec![
                         "Exit".into(),
-                        "".into(),
                     ]),
                     screen: CurrentScreen::Exit,
                 },

@@ -97,52 +97,56 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                             if app.sim_list_state.selected().is_none()
                                 && app.settings_list_state.selected().is_none()
                             {
-                                app.sim_list_state.select_first();
+                                app.sim_select_first();
                             }
 
                             if app.sim_list_state.selected().is_none() {
-                                app.settings_list_state.select_next();
+                                if app.settings_list_state.selected()
+                                    == Some(app.simulation_items.len() - 1)
+                                {
+                                    app.settings_select_next();
+                                }
                             } else {
-                                app.sim_list_state.select_next();
+                                app.sim_select_next();
                             }
                         }
                         KeyCode::Char('k') | KeyCode::Up => {
                             if app.sim_list_state.selected().is_none()
                                 && app.settings_list_state.selected().is_none()
                             {
-                                app.sim_list_state.select_first();
+                                app.sim_select_first();
                             }
 
                             if app.sim_list_state.selected().is_none() {
-                                app.settings_list_state.select_previous();
+                                app.settings_select_previous();
                             } else {
-                                app.sim_list_state.select_previous();
+                                app.sim_select_previous();
                             }
                         }
                         KeyCode::Char('g') | KeyCode::Home => {
                             if app.sim_list_state.selected().is_none()
                                 && app.settings_list_state.selected().is_none()
                             {
-                                app.sim_list_state.select_first();
+                                app.sim_select_first();
                             }
 
                             if app.sim_list_state.selected().is_none() {
-                                app.settings_list_state.select_first();
+                                app.settings_select_first();
                             } else {
-                                app.sim_list_state.select_first();
+                                app.sim_select_first();
                             }
                         }
                         KeyCode::Char('G') | KeyCode::End => {
                             if app.sim_list_state.selected().is_none()
                                 && app.settings_list_state.selected().is_none()
                             {
-                                app.sim_list_state.select_last();
+                                app.sim_select_last();
                             }
 
                             if app.sim_list_state.selected().is_none() {
-                                app.settings_list_state.select_last();
+                                app.settings_select_last();
                             } else {
-                                app.sim_list_state.select_last();
+                                app.sim_select_last();
                             }
                         }
                         KeyCode::Char('l') | KeyCode::Right => {
