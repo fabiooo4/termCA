@@ -14,6 +14,36 @@ pub struct AntSim {
     pub generation: usize,     // Number of generations
 }
 
+impl Default for AntSim {
+    fn default() -> Self {
+        AntSim {
+            ants: vec![Ant::default()],
+            rules_input: String::from("RL"),
+            grid: Grid::new(),
+            states: vec![
+                Color::Reset,
+                Color::Indexed(3),
+                Color::Indexed(1),
+                Color::Indexed(2),
+                Color::Indexed(4),
+                Color::Indexed(5),
+                Color::Indexed(6),
+                Color::Indexed(9),
+                Color::Indexed(10),
+                Color::Indexed(11),
+                Color::Indexed(12),
+                Color::Indexed(13),
+                Color::Indexed(14),
+                Color::Indexed(7),
+                Color::Indexed(8),
+                Color::Indexed(15),
+            ],
+            rules: vec![Direction::Right, Direction::Left],
+            generation: 0,
+        }
+    }
+}
+
 /// Struct that holds the ant data
 pub struct Ant {
     pub x: usize,
@@ -22,14 +52,26 @@ pub struct Ant {
     pub direction: Direction,
 }
 
-impl Ant {
+impl Default for Ant {
     /// Constructs a new empty `Ant`
-    pub fn new() -> Self {
+    fn default() -> Self {
         Ant {
             x: 0,
             y: 0,
             color: Color::Indexed(16),
-            direction: Direction::Right,
+            direction: Direction::Up,
+        }
+    }
+}
+
+impl Ant {
+    /// Constructs a new `Ant` given the position and direction
+    pub fn new(x: usize, y: usize, direction: Direction) -> Self {
+        Ant {
+            x,
+            y,
+            color: Color::Indexed(16),
+            direction,
         }
     }
 }
@@ -163,8 +205,8 @@ impl AntSim {
     /// Standard Langton's Ant simulation
     pub fn run_ant_sim(app: &mut App) {
         if let Some(ref mut ant_sim) = app.ant_sim {
-            for ant in ant_sim.ants.iter_mut() {
-                for _ in 0..app.speed_multiplier {
+            for _ in 0..app.speed_multiplier {
+                for ant in ant_sim.ants.iter_mut() {
                     Self::ant_turn(ant, &ant_sim.grid, &ant_sim.states, &ant_sim.rules);
                     Self::ant_flip(ant, &mut ant_sim.grid, &ant_sim.states, &ant_sim.rules);
                     Self::ant_forward(ant, &ant_sim.grid);

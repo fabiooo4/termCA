@@ -84,31 +84,7 @@ impl App<'_> {
 
     pub fn start_ant_default(&mut self) {
         self.stop_all();
-        self.ant_sim = Some(AntSim {
-            ants: vec![Ant::new()],
-            rules_input: String::from("RL"),
-            grid: Grid::new(),
-            states: vec![
-                Color::Reset,
-                Color::Indexed(3),
-                Color::Indexed(1),
-                Color::Indexed(2),
-                Color::Indexed(4),
-                Color::Indexed(5),
-                Color::Indexed(6),
-                Color::Indexed(9),
-                Color::Indexed(10),
-                Color::Indexed(11),
-                Color::Indexed(12),
-                Color::Indexed(13),
-                Color::Indexed(14),
-                Color::Indexed(7),
-                Color::Indexed(8),
-                Color::Indexed(15),
-            ],
-            rules: vec![Direction::Right, Direction::Left],
-            generation: 0,
-        });
+        self.ant_sim = Some(AntSim::default());
     }
 
     // List of CAs state handling
@@ -137,6 +113,10 @@ impl App<'_> {
 
     pub fn change_screen(&mut self) {
         if let Some(i) = self.sim_list_state.selected() {
+            self.current_screen = self.simulation_items[i].screen
+        }
+
+        if let Some(i) = self.settings_list_state.selected() {
             self.current_screen = self.simulation_items[i].screen
         }
     }

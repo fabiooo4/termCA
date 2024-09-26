@@ -89,6 +89,13 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
                 _ => crate::simulations::ant::Direction::Right,
             };
         }
+    } else if app.ant_sim.as_ref().unwrap().generation == 0 {
+        // If the ant simulation is already set, the grid still needs to be initialized with the
+        // screen size
+        let ant_sim = app.ant_sim.as_mut().unwrap();
+
+        // Initialize the grid with the same size as the canvas
+        ant_sim.grid.cells = vec![vec![ant_sim.states[0]; width as usize]; height as usize];
     }
 
     // From here `app.ant_sim` is `Some`
