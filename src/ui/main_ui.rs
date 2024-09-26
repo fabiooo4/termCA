@@ -1,27 +1,20 @@
 use ratatui::{
-    layout::{Flex, Margin, Rect},
-    style::Modifier,
-    text::Span,
-    widgets::{List, ListDirection, ListItem, Padding},
+    layout::{Flex, Rect},
+    widgets::{List, ListDirection, ListItem},
     Frame,
 };
 
-use rand::Rng;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout},
-    style::{Color, Style, Stylize},
-    text::Line,
+    style::{Style, Stylize},
     widgets::{
-        block::{Position, Title},
-        canvas::{Canvas, Points},
-        Block, BorderType, Borders, Clear, Paragraph,
+        Block, BorderType, Borders, Paragraph,
     },
 };
 use tui_big_text::{BigText, PixelSize};
 
-use crate::{app::App, simulations::ant::AntSim};
+use crate::app::App;
 
-use super::centered_rect_length;
 
 pub fn main_screen(frame: &mut Frame, app: &mut App) {
     if frame

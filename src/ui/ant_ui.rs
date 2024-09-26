@@ -1,4 +1,4 @@
-use ratatui::{layout::Rect, text::Span, Frame};
+use ratatui::{layout::Rect, Frame};
 
 use rand::Rng;
 use ratatui::{
@@ -103,7 +103,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .alignment(Alignment::Center);
 
     let bottom_left_title = Title::from(Line::from(vec![
-        " Generation: ".into(),
+        " Iteration: ".into(),
         ant_sim.generation.to_string().yellow(),
         " ".into(),
     ]))
@@ -124,7 +124,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     .position(Position::Bottom)
     .alignment(Alignment::Right);
 
-    let top_left_debug = Title::from(Line::from(vec![
+    /* let top_left_debug = Title::from(Line::from(vec![
         "(".into(),
         ant_sim.ants[0].x.to_string().yellow(),
         "/".into(),
@@ -148,7 +148,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         height.to_string().red(),
         "]".into(),
         " ".into(),
-    ]));
+    ])); */
 
     /////////////////////////////
     // Simulation canvas

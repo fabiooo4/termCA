@@ -1,8 +1,7 @@
 use crate::simulations::ant::{Ant, AntSim, Direction, Grid};
 use ratatui::{
-    style::{Color, Style},
+    style::Color,
     symbols::Marker,
-    text::Line,
     widgets::{ListItem, ListState},
 };
 use std::time::Duration;

@@ -144,7 +144,11 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                             }
 
                             if app.sim_list_state.selected().is_none() {
-                                app.settings_select_last();
+                                if app.settings_list_state.selected()
+                                    == Some(app.simulation_items.len() - 1)
+                                {
+                                    app.settings_select_last();
+                                }
                             } else {
                                 app.sim_select_last();
                             }
