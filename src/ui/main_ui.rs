@@ -1,8 +1,8 @@
 use ratatui::{
-    layout::Rect,
+    layout::{Margin, Rect},
     style::Modifier,
     text::Span,
-    widgets::{List, ListDirection, Padding},
+    widgets::{List, ListDirection, ListItem, Padding},
     Frame,
 };
 
@@ -94,6 +94,13 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         ])
         .split(vertical_layout[4]);
 
+    let list_layout = Layout::default()
+        .direction(Direction::Horizontal)
+        .vertical_margin(1)
+        .horizontal_margin(2)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .split(horizontal_layout[1]);
+
     /////////////////////////////
     // Titles
     /////////////////////////////
@@ -104,7 +111,10 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .alignment(Alignment::Center)
         .build();
 
-    let subtitle = Paragraph::new("Cellular Automata").alignment(Alignment::Center);
+    let subtitle = Paragraph::new("Cellular Automata")
+        .alignment(Alignment::Center)
+        .white()
+        .bold();
 
     frame.render_widget(title, vertical_layout[1]);
     frame.render_widget(subtitle, vertical_layout[2]);
@@ -112,22 +122,31 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     /////////////////////////////
     // List
     /////////////////////////////
-    let items: Vec<Line> = app
-        .list_items
+    let list_border = Block::bordered()
+        .border_type(BorderType::Rounded)
+        .style(Style::new().yellow());
+
+    frame.render_widget(list_border, horizontal_layout[1]);
+
+    let sim_items: Vec<ListItem> = app
+        .simulation_items
         .iter()
-        .map(|item| item.line.clone())
+        .map(|item| item.item.clone())
         .collect();
 
-    let list = List::new(items)
-        .block(
-            Block::bordered()
-                .border_type(BorderType::Rounded)
-                .padding(Padding::symmetric(1, 0)),
-        )
+    let sim_list = List::new(sim_items)
         .style(Style::default().fg(Color::White))
-        .highlight_style(Style::default().add_modifier(Modifier::REVERSED))
-        .repeat_highlight_symbol(true)
+        .highlight_style(Style::default().yellow().bold())
         .direction(ListDirection::TopToBottom);
 
-    frame.render_stateful_widget(list, horizontal_layout[1], &mut app.list_state);
+    let settings_list = List::new(vec![
+        ListItem::from(vec!["Edit".into(), "".into()]);
+        app.simulation_items.len()
+    ])
+    .style(Style::default().fg(Color::White))
+    .highlight_style(Style::default().yellow().bold())
+    .direction(ListDirection::TopToBottom);
+
+    frame.render_stateful_widget(sim_list, list_layout[0], &mut app.sim_list_state);
+    frame.render_stateful_widget(settings_list, list_layout[1], &mut app.settings_list_state);
 }

@@ -87,18 +87,78 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                 match app.current_screen {
                     CurrentScreen::Main => match key.code {
                         KeyCode::Char('q') => app.current_screen = CurrentScreen::Exit,
-                        KeyCode::Char('h') | KeyCode::Left => app.select_none(),
-                        KeyCode::Char('j') | KeyCode::Down => app.select_next(),
-                        KeyCode::Char('k') | KeyCode::Up => app.select_previous(),
-                        KeyCode::Char('g') | KeyCode::Home => app.select_first(),
-                        KeyCode::Char('G') | KeyCode::End => app.select_last(),
-                        KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => {
+                        KeyCode::Char('h') | KeyCode::Left => {
+                            if !app.settings_list_state.selected().is_none() {
+                                app.sim_select_idx(app.settings_list_state.selected());
+                                app.settings_select_none();
+                            }
+                        }
+                        KeyCode::Char('j') | KeyCode::Down => {
+                            if app.sim_list_state.selected().is_none()
+                                && app.settings_list_state.selected().is_none()
+                            {
+                                app.sim_list_state.select_first();
+                            }
+
+                            if app.sim_list_state.selected().is_none() {
+                                app.settings_list_state.select_next();
+                            } else {
+                                app.sim_list_state.select_next();
+                            }
+                        }
+                        KeyCode::Char('k') | KeyCode::Up => {
+                            if app.sim_list_state.selected().is_none()
+                                && app.settings_list_state.selected().is_none()
+                            {
+                                app.sim_list_state.select_first();
+                            }
+
+                            if app.sim_list_state.selected().is_none() {
+                                app.settings_list_state.select_previous();
+                            } else {
+                                app.sim_list_state.select_previous();
+                            }
+                        }
+                        KeyCode::Char('g') | KeyCode::Home => {
+                            if app.sim_list_state.selected().is_none()
+                                && app.settings_list_state.selected().is_none()
+                            {
+                                app.sim_list_state.select_first();
+                            }
+
+                            if app.sim_list_state.selected().is_none() {
+                                app.settings_list_state.select_first();
+                            } else {
+                                app.sim_list_state.select_first();
+                            }
+                        }
+                        KeyCode::Char('G') | KeyCode::End => {
+                            if app.sim_list_state.selected().is_none()
+                                && app.settings_list_state.selected().is_none()
+                            {
+                                app.sim_list_state.select_last();
+                            }
+
+                            if app.sim_list_state.selected().is_none() {
+                                app.settings_list_state.select_last();
+                            } else {
+                                app.sim_list_state.select_last();
+                            }
+                        }
+                        KeyCode::Char('l') | KeyCode::Right => {
+                            if !app.sim_list_state.selected().is_none() {
+                                app.settings_select_idx(app.sim_list_state.selected());
+                                app.sim_select_none();
+                            }
+                        }
+                        KeyCode::Enter => {
                             app.change_screen();
                         }
                         _ => {}
                     },
                     CurrentScreen::Ant => match key.code {
-                        KeyCode::Char('q') => {app.current_screen = CurrentScreen::Main;
+                        KeyCode::Char('q') => {
+                            app.current_screen = CurrentScreen::Main;
                             app.stop_all();
                         }
                         KeyCode::Char(' ') => app.is_running = !app.is_running,

@@ -1,5 +1,10 @@
 use crate::simulations::ant::{Ant, AntSim, Direction, Grid};
-use ratatui::{style::Color, symbols::Marker, text::Line, widgets::ListState};
+use ratatui::{
+    style::Color,
+    symbols::Marker,
+    text::Line,
+    widgets::{ListItem, ListState},
+};
 use std::time::Duration;
 
 /// All the possible screens in the application
@@ -10,8 +15,8 @@ pub enum CurrentScreen {
     Exit,
 }
 
-pub struct ListItem<'a> {
-    pub line: Line<'a>,
+pub struct SimulationItem<'a> {
+    pub item: ListItem<'a>,
     pub screen: CurrentScreen,
 }
 
@@ -23,8 +28,9 @@ pub struct App<'a> {
     pub speed: Duration,         // Delay between each generation
     pub speed_multiplier: usize, // Number of generations per frame
     pub marker: Marker,          // Character to draw the cells
-    pub list_items: Vec<ListItem<'a>>,
-    pub list_state: ListState, // State of the list of CAs
+    pub simulation_items: Vec<SimulationItem<'a>>,
+    pub sim_list_state: ListState, // State of the list of CAs
+    pub settings_list_state: ListState,
 
     /// Ant simulation data (optional because it's only used in the Ant
     /// screen)
@@ -41,17 +47,24 @@ impl App<'_> {
             speed: Duration::from_millis(80),
             speed_multiplier: 1,
             marker: Marker::HalfBlock,
-            list_items: vec![
-                ListItem {
-                    line: Line::from("Langton's Ant"),
+            simulation_items: vec![
+                SimulationItem {
+                    item: ListItem::from(vec![
+                        "Langton's Ant".into(),
+                        "".into(),
+                    ]),
                     screen: CurrentScreen::Ant,
                 },
-                ListItem {
-                    line: Line::from("Todo"),
+                SimulationItem {
+                    item: ListItem::from(vec![
+                        "Exit".into(),
+                        "".into(),
+                    ]),
                     screen: CurrentScreen::Exit,
-                }
+                },
             ],
-            list_state: ListState::default(),
+            sim_list_state: ListState::default().with_selected(Some(0)),
+            settings_list_state: ListState::default(),
 
             ant_sim: None,
         }
@@ -100,29 +113,58 @@ impl App<'_> {
         });
     }
 
-    pub fn select_none(&mut self) {
-        self.list_state.select(None);
+    // List of CAs state handling
+    pub fn sim_select_none(&mut self) {
+        self.sim_list_state.select(None);
     }
 
-    pub fn select_next(&mut self) {
-        self.list_state.select_next();
-    }
-    pub fn select_previous(&mut self) {
-        self.list_state.select_previous();
+    pub fn sim_select_idx(&mut self, idx: Option<usize>) {
+        self.sim_list_state.select(idx);
     }
 
-    pub fn select_first(&mut self) {
-        self.list_state.select_first();
+    pub fn sim_select_next(&mut self) {
+        self.sim_list_state.select_next();
+    }
+    pub fn sim_select_previous(&mut self) {
+        self.sim_list_state.select_previous();
     }
 
-    pub fn select_last(&mut self) {
-        self.list_state.select_last();
+    pub fn sim_select_first(&mut self) {
+        self.sim_list_state.select_first();
+    }
+
+    pub fn sim_select_last(&mut self) {
+        self.sim_list_state.select_last();
     }
 
     pub fn change_screen(&mut self) {
-        if let Some(i) = self.list_state.selected() {
-            self.current_screen = self.list_items[i].screen
+        if let Some(i) = self.sim_list_state.selected() {
+            self.current_screen = self.simulation_items[i].screen
         }
+    }
+
+    // List of CA's settings state handling
+    pub fn settings_select_none(&mut self) {
+        self.settings_list_state.select(None);
+    }
+
+    pub fn settings_select_idx(&mut self, idx: Option<usize>) {
+        self.settings_list_state.select(idx);
+    }
+
+    pub fn settings_select_next(&mut self) {
+        self.settings_list_state.select_next();
+    }
+    pub fn settings_select_previous(&mut self) {
+        self.settings_list_state.select_previous();
+    }
+
+    pub fn settings_select_first(&mut self) {
+        self.settings_list_state.select_first();
+    }
+
+    pub fn settings_select_last(&mut self) {
+        self.settings_list_state.select_last();
     }
 
 }
