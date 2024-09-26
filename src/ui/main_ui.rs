@@ -135,7 +135,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     frame.render_widget(list_border, horizontal_layout[1]);
 
-    let partial_highlight = Style::default().white().bold().not_dim();
 
     let mut sim_items: Vec<ListItem> = app
         .simulation_items
@@ -146,12 +145,15 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     let mut settings_items: Vec<ListItem> =
         vec![ListItem::from(vec!["Edit".into(), "".into()]); app.simulation_items.len() - 1];
 
+    // Highlight added to the selected row, but on the column that is not selected
+    let partial_highlight = Style::default().white().bold().not_dim();
+
     if let Some(idx) = app.settings_list_state.selected() {
         sim_items[idx] = sim_items[idx].clone().style(partial_highlight);
     }
 
     if let Some(idx) = app.sim_list_state.selected() {
-        if idx < app.simulation_items.len() -1  {
+        if idx < app.simulation_items.len() - 1 {
             settings_items[idx] = settings_items[idx].clone().style(partial_highlight);
         }
     }
@@ -164,7 +166,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     let settings_list = List::new(settings_items)
         .style(Style::default().white().dim())
         .highlight_style(Style::default().yellow().bold().not_dim())
-    .direction(ListDirection::TopToBottom);
+        .direction(ListDirection::TopToBottom);
 
     frame.render_stateful_widget(sim_list, list_layout[1], &mut app.sim_list_state);
     frame.render_stateful_widget(settings_list, list_layout[2], &mut app.settings_list_state);
