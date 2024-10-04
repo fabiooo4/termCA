@@ -203,7 +203,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                             // Run simulation once
                             AntSim::run_ant_sim(app);
                         }
-                        KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => {
+                        KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => {
                             // Increase simulation speed
                             if app.speed > Duration::from_millis(100) {
                                 app.speed = app.speed.saturating_sub(Duration::from_millis(100));
@@ -224,7 +224,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                                 }
                             }
                         }
-                        KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => {
+                        KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
                             // Decrease simulation speed
                             if app.speed_multiplier > 1 {
                                 if app.speed_multiplier > 1000 {
