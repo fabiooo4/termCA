@@ -8,7 +8,7 @@ use std::time::Duration;
 
 /// All the possible screens in the application
 #[derive(Clone, Copy)]
-pub enum CurrentScreen {
+pub enum Screen {
     Main,
     Ant,
     Exit,
@@ -16,12 +16,13 @@ pub enum CurrentScreen {
 
 pub struct SimulationItem<'a> {
     pub item: ListItem<'a>,
-    pub screen: CurrentScreen,
+    pub screen: Screen,
 }
 
 /// Struct that holds the application data
 pub struct App<'a> {
-    pub current_screen: CurrentScreen,
+    pub current_screen: Screen,
+    pub editing: Option<Screen>,
     pub help_screen: bool,
     pub is_running: bool,        // Pause/Resume
     pub speed: Duration,         // Delay between each generation
@@ -41,24 +42,20 @@ impl App<'_> {
     pub fn new() -> Self {
         App {
             help_screen: false,
-            current_screen: CurrentScreen::Main,
+            current_screen: Screen::Main,
+            editing: None,
             is_running: false,
             speed: Duration::from_millis(80),
             speed_multiplier: 1,
             marker: Marker::HalfBlock,
             simulation_items: vec![
                 SimulationItem {
-                    item: ListItem::from(vec![
-                        "Langton's Ant".into(),
-                        "".into(),
-                    ]),
-                    screen: CurrentScreen::Ant,
+                    item: ListItem::from(vec!["Langton's Ant".into(), "".into()]),
+                    screen: Screen::Ant,
                 },
                 SimulationItem {
-                    item: ListItem::from(vec![
-                        "Exit".into(),
-                    ]),
-                    screen: CurrentScreen::Exit,
+                    item: ListItem::from(vec!["Exit".into()]),
+                    screen: Screen::Exit,
                 },
             ],
             sim_list_state: ListState::default().with_selected(Some(0)),
@@ -144,5 +141,4 @@ impl App<'_> {
     pub fn settings_select_last(&mut self) {
         self.settings_list_state.select_last();
     }
-
 }

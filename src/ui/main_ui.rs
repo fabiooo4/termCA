@@ -16,7 +16,7 @@ use tui_big_text::{BigText, PixelSize};
 
 use crate::app::App;
 
-use super::centered_rect_length;
+use super::{centered_rect_length, edit_ui::render_edit};
 
 pub fn main_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -228,5 +228,9 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         frame.render_widget(help_block, help_area);
         frame.render_widget(help_keys, help_center[0]);
         frame.render_widget(help_labels, help_center[1]);
+    }
+
+    if let Some(edit_sim) = app.editing {
+        render_edit(frame, edit_sim, app);
     }
 }

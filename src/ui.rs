@@ -1,18 +1,19 @@
 pub mod ant_ui;
 pub mod main_ui;
+pub mod edit_ui;
 
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     Frame,
 };
 
-use crate::app::{App, CurrentScreen};
+use crate::app::{App, Screen};
 
 pub fn ui(frame: &mut Frame, app: &mut App) {
     // Render widgets
     match app.current_screen {
-        CurrentScreen::Main => main_ui::main_screen(frame, app),
-        CurrentScreen::Ant => ant_ui::ant_screen(frame, app),
+        Screen::Main => main_ui::main_screen(frame, app),
+        Screen::Ant => ant_ui::ant_screen(frame, app),
 
         _ => {}
     }
