@@ -2,7 +2,8 @@ use ratatui::{
     layout::{Flex, Rect},
     text::Line,
     widgets::{
-        block::{Position, Title}, Clear, List, ListDirection, ListItem
+        block::{Position, Title},
+        Clear, List, ListDirection, ListItem,
     },
     Frame,
 };
@@ -16,7 +17,7 @@ use tui_big_text::{BigText, PixelSize};
 
 use crate::app::App;
 
-use super::{centered_rect_length, edit_ui::render_edit};
+use super::{centered_rect_length, edit_ui::render_edit, help_ui::render_help};
 
 pub fn main_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -174,60 +175,20 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Help screen
     /////////////////////////////
 
-    let keys = vec![
-        Line::from("Q ".yellow()),
-        Line::from("? ".yellow()),
-        Line::from("Enter ".yellow()),
-        Line::from("K / ↑ ".yellow()),
-        Line::from("J / ↓ ".yellow()),
-        Line::from("L / → ".yellow()),
-        Line::from("H / ← ".yellow()),
-        Line::from("g ".yellow()),
-        Line::from("G ".yellow()),
+    let help_entries: Vec<(Line, Line)> = vec![
+        (Line::from("Q ".yellow()), Line::from("Quit")),
+        (Line::from("? ".yellow()), Line::from("Help")),
+        (Line::from("Enter ".yellow()), Line::from("Select")),
+        (Line::from("K / ↑ ".yellow()), Line::from("Scroll Up")),
+        (Line::from("J / ↓ ".yellow()), Line::from("Scroll Down")),
+        (Line::from("L / → ".yellow()), Line::from("Scroll Right")),
+        (Line::from("H / ← ".yellow()), Line::from("Scroll Left")),
+        (Line::from("g ".yellow()), Line::from("Scroll to Bottom")),
+        (Line::from("G ".yellow()), Line::from("Scroll to Top")),
     ];
-
-    let labels = vec![
-        Line::from("Quit"),
-        Line::from("Help"),
-        Line::from("Select"),
-        Line::from("Scroll Up"),
-        Line::from("Scroll Down"),
-        Line::from("Scroll Right"),
-        Line::from("Scroll Left"),
-        Line::from("Scroll to Bottom"),
-        Line::from("Scroll to Top"),
-    ];
-
-    let help_area = centered_rect_length(27, (keys.len() + 4) as u16, frame.area());
-    let help_block = Block::default()
-        .title(" Help ".yellow().bold())
-        .title_alignment(Alignment::Center)
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded)
-        .style(Style::default());
-
-    let help_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(2),
-            Constraint::Min(keys.len() as u16),
-            Constraint::Length(2),
-        ])
-        .split(help_area);
-
-    let help_center = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(35), Constraint::Percentage(65)])
-        .split(help_layout[1]);
-
-    let help_keys = Paragraph::new(keys).alignment(Alignment::Right);
-    let help_labels = Paragraph::new(labels).alignment(Alignment::Left);
 
     if app.help_screen {
-        frame.render_widget(Clear, help_area);
-        frame.render_widget(help_block, help_area);
-        frame.render_widget(help_keys, help_center[0]);
-        frame.render_widget(help_labels, help_center[1]);
+        render_help(frame, help_entries);
     }
 
     if let Some(edit_sim) = app.editing {

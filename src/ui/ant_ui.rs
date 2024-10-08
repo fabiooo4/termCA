@@ -14,7 +14,7 @@ use ratatui::{
 
 use crate::{app::App, simulations::ant::AntSim};
 
-use super::centered_rect_length;
+use super::{centered_rect_length, help_ui::render_help};
 
 pub fn ant_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -219,53 +219,16 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Help screen
     /////////////////////////////
 
-    let keys = vec![
-        Line::from("Q ".yellow()),
-        Line::from("? ".yellow()),
-        Line::from("Space ".yellow()),
-        Line::from("L / → ".yellow()),
-        Line::from("J / ↓ ".yellow()),
-        Line::from("K / ↑ ".yellow()),
+    let help_entries: Vec<(Line, Line)> = vec![
+        (Line::from("Q ".yellow()), Line::from("Quit")),
+        (Line::from("? ".yellow()), Line::from("Help")),
+        (Line::from("Space ".yellow()), Line::from("Start/Pause")),
+        (Line::from("K / ↑ ".yellow()), Line::from("Speed Up")),
+        (Line::from("J / ↓ ".yellow()), Line::from("Speed Down")),
+        (Line::from("L / → ".yellow()), Line::from("Next Generation")),
     ];
-
-    let labels = vec![
-        Line::from("Quit"),
-        Line::from("Help"),
-        Line::from("Start/Pause"),
-        Line::from("Next Generation"),
-        Line::from("Speed Down"),
-        Line::from("Speed Up"),
-    ];
-
-    let help_area = centered_rect_length(27, (keys.len() + 4) as u16, frame.area());
-    let help_block = Block::default()
-        .title(" Help ".yellow().bold())
-        .title_alignment(Alignment::Center)
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded)
-        .style(Style::default());
-
-    let help_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(2),
-            Constraint::Min(keys.len() as u16),
-            Constraint::Length(2),
-        ])
-        .split(help_area);
-
-    let help_center = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(35), Constraint::Percentage(65)])
-        .split(help_layout[1]);
-
-    let help_keys = Paragraph::new(keys).alignment(Alignment::Right);
-    let help_labels = Paragraph::new(labels).alignment(Alignment::Left);
 
     if app.help_screen {
-        frame.render_widget(Clear, help_area);
-        frame.render_widget(help_block, help_area);
-        frame.render_widget(help_keys, help_center[0]);
-        frame.render_widget(help_labels, help_center[1]);
+        render_help(frame, help_entries);
     }
 }

@@ -1,6 +1,7 @@
 pub mod ant_ui;
 pub mod main_ui;
 pub mod edit_ui;
+pub mod help_ui;
 
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
