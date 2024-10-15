@@ -72,8 +72,16 @@ pub fn edit(key: KeyEvent, app: &mut App) {
             app.editing = None;
             app.ant_sim = None;
         }
+        KeyCode::Backspace => {
+            app.ant_sim.as_mut().unwrap().rules_input.pop();
+        }
         KeyCode::Char(c) => {
-            app.ant_sim.as_mut().unwrap().rules_input.push(c);
+            let allowed_chars = "rlfbRLFB";
+            if !allowed_chars.contains(c) {
+                return;
+            }
+
+            app.ant_sim.as_mut().unwrap().rules_input.push(c.to_ascii_uppercase());
         }
         _ => {}
     }

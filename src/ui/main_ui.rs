@@ -15,9 +15,9 @@ use ratatui::{
 };
 use tui_big_text::{BigText, PixelSize};
 
-use crate::app::App;
+use crate::app::{App, Screen};
 
-use super::{centered_rect_length, edit_ui::render_edit, help_ui::render_help};
+use super::{ant_ui, render_help};
 
 pub fn main_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -195,6 +195,9 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Edit screen
     /////////////////////////////
     if let Some(edit_sim) = app.editing {
-        render_edit(frame, edit_sim, app);
+        match edit_sim {
+            Screen::Ant => ant_ui::edit(frame, app),
+            _ => {}
+        }
     }
 }

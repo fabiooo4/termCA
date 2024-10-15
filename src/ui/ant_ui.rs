@@ -2,7 +2,7 @@ use ratatui::{layout::Rect, Frame};
 
 use rand::Rng;
 use ratatui::{
-    layout::{Alignment, Constraint, Direction, Layout},
+    layout::Alignment,
     style::{Color, Style, Stylize},
     text::Line,
     widgets::{
@@ -12,9 +12,9 @@ use ratatui::{
     },
 };
 
-use crate::{app::App, simulations::ant::AntSim};
+use crate::{app::App, simulations::{ant::AntSim, Direction}};
 
-use super::{centered_rect_length, help_ui::render_help};
+use super::{centered_rect_length, render_help};
 
 pub fn ant_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -82,11 +82,11 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         for ant in &mut ant_sim.ants {
             let direction = rng.gen_range(0..4);
             ant.direction = match direction {
-                0 => crate::simulations::ant::Direction::Left,
-                1 => crate::simulations::ant::Direction::Right,
-                2 => crate::simulations::ant::Direction::Up,
-                3 => crate::simulations::ant::Direction::Down,
-                _ => crate::simulations::ant::Direction::Right,
+                0 => Direction::Left,
+                1 => Direction::Right,
+                2 => Direction::Up,
+                3 => Direction::Down,
+                _ => Direction::Right,
             };
         }
     } else if app.ant_sim.as_ref().unwrap().generation == 0 {
@@ -231,4 +231,23 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     if app.help_screen {
         render_help(frame, help_entries);
     }
+}
+
+pub fn edit(frame: &mut Frame, app: &mut App) {
+    let edit_area = centered_rect_length(27, 4, frame.area());
+    let edit_block = Block::default()
+        .title(" Edit ".yellow().bold())
+        .title_alignment(Alignment::Center)
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .style(Style::default());
+
+    frame.render_widget(Clear, edit_area);
+    frame.render_widget(edit_block, edit_area);
+
+    let ruleset_block = Block::default().title("Ruleset").borders(Borders::ALL);
+    let ruleset = app.ant_sim.as_ref().unwrap().rules_input.clone();
+
+    let ruleset_paragraph = Paragraph::new(ruleset).block(ruleset_block);
+    frame.render_widget(ruleset_paragraph, edit_area);
 }

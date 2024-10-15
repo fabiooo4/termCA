@@ -1,18 +1,16 @@
 mod app;
+mod events;
 mod simulations;
 mod ui;
-mod events;
 
 use crate::app::App;
 use crate::ui::ui;
 use app::Screen;
-use crossterm::event::{self, Event, KeyCode};
-use events::{ant_events, main_events};
-use ratatui::style::Color;
+use crossterm::event::{self, Event};
+use events::{ant_events, is_event_available, main_events};
 use ratatui::DefaultTerminal;
-use simulations::ant::{Ant, AntSim, Direction};
+use simulations::ant::AntSim;
 use std::io::{self};
-use std::time::Duration;
 
 fn main() -> io::Result<()> {
     let mut terminal = ratatui::init();
@@ -82,8 +80,4 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
             _ => {}
         }
     }
-}
-
-fn is_event_available(speed: Duration) -> io::Result<bool> {
-    event::poll(speed)
 }

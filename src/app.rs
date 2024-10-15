@@ -1,6 +1,5 @@
-use crate::simulations::ant::{Ant, AntSim, Direction, Grid};
+use crate::simulations::ant::AntSim;
 use ratatui::{
-    style::Color,
     symbols::Marker,
     widgets::{ListItem, ListState},
 };
