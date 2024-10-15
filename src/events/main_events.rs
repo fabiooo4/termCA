@@ -11,12 +11,12 @@ pub fn main(key: KeyEvent, app: &mut App) {
         KeyCode::Char('h') | KeyCode::Char('H') | KeyCode::Left => {
             if !app.settings_list_state.selected().is_none() {
                 app.sim_select_idx(app.settings_list_state.selected());
-                app.settings_select_none();
+                app.edit_select_none();
             }
         }
         KeyCode::Char('l') | KeyCode::Char('L') | KeyCode::Right => {
             if !app.sim_list_state.selected().is_none() {
-                app.settings_select_idx(app.sim_list_state.selected());
+                app.edit_select_idx(app.sim_list_state.selected());
                 app.sim_select_none();
             }
         }
@@ -29,7 +29,7 @@ pub fn main(key: KeyEvent, app: &mut App) {
 
             if app.sim_list_state.selected().is_none() {
                 if app.settings_list_state.selected() == Some(app.simulation_items.len() - 1) {
-                    app.settings_select_next();
+                    app.edit_select_next();
                 }
             } else {
                 app.sim_select_next();
@@ -43,7 +43,7 @@ pub fn main(key: KeyEvent, app: &mut App) {
             }
 
             if app.sim_list_state.selected().is_none() {
-                app.settings_select_previous();
+                app.edit_select_previous();
             } else {
                 app.sim_select_previous();
             }
@@ -56,7 +56,7 @@ pub fn main(key: KeyEvent, app: &mut App) {
             }
 
             if app.sim_list_state.selected().is_none() {
-                app.settings_select_first();
+                app.edit_select_first();
             } else {
                 app.sim_select_first();
             }
@@ -70,7 +70,7 @@ pub fn main(key: KeyEvent, app: &mut App) {
 
             if app.sim_list_state.selected().is_none() {
                 if app.settings_list_state.selected() == Some(app.simulation_items.len() - 1) {
-                    app.settings_select_last();
+                    app.edit_select_last();
                 }
             } else {
                 app.sim_select_last();
@@ -80,15 +80,15 @@ pub fn main(key: KeyEvent, app: &mut App) {
             // If a simulation is selected from the list,
             // change the screen to that simulation
             if !app.sim_list_state.selected().is_none() {
-                app.change_screen();
+                app.change_screen_selected();
             }
 
             // If edit is selected, enter edit mode on the selected simulation
             if let Some(i) = app.settings_list_state.selected() {
                 match app.simulation_items[i].screen {
                     Screen::Ant => {
-                        // Create a temporary ant simulation to be able to edit it
-                        app.ant_sim = Some(AntSim::default());
+                        // Create a default ant simulation to be able to edit it
+                        app.start_ant_default();
                         app.editing = Some(app.simulation_items[i].screen);
                     }
                     _ => {}

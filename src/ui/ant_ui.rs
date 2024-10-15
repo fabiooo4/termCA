@@ -1,4 +1,7 @@
-use ratatui::{layout::Rect, Frame};
+use ratatui::{
+    layout::{Constraint, Direction, Layout, Rect},
+    Frame,
+};
 
 use rand::Rng;
 use ratatui::{
@@ -12,7 +15,10 @@ use ratatui::{
     },
 };
 
-use crate::{app::App, simulations::{ant::AntSim, Direction}};
+use crate::{
+    app::{App, InputMode},
+    simulations::{self, ant::AntSim},
+};
 
 use super::{centered_rect_length, render_help};
 
@@ -66,8 +72,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         ant_sim.grid.cells = vec![vec![ant_sim.states[0]; width as usize]; height as usize];
 
         // Change default ruleset
-        ant_sim.rules_input = String::from("RRLLLRLLLLLLLLL");
-        ant_sim.rules = AntSim::parse_ant_ruleset(&ant_sim.rules_input);
+        ant_sim.rules = AntSim::parse_ant_ruleset("RRLLLRLLLLLLLLL");
 
         // Set ant position randomly biased towards the center
         let mut rng = rand::thread_rng();
@@ -82,11 +87,11 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         for ant in &mut ant_sim.ants {
             let direction = rng.gen_range(0..4);
             ant.direction = match direction {
-                0 => Direction::Left,
-                1 => Direction::Right,
-                2 => Direction::Up,
-                3 => Direction::Down,
-                _ => Direction::Right,
+                0 => simulations::Direction::Left,
+                1 => simulations::Direction::Right,
+                2 => simulations::Direction::Up,
+                3 => simulations::Direction::Down,
+                _ => simulations::Direction::Right,
             };
         }
     } else if app.ant_sim.as_ref().unwrap().generation == 0 {
@@ -234,20 +239,77 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 }
 
 pub fn edit(frame: &mut Frame, app: &mut App) {
-    let edit_area = centered_rect_length(27, 4, frame.area());
+    let ant_sim = app.ant_sim.as_mut().unwrap();
+
+    let edit_area_width: usize = 27;
+    let edit_area_height: usize = 5;
+
+    let edit_area = centered_rect_length(
+        edit_area_width as u16,
+        edit_area_height as u16,
+        frame.area(),
+    );
     let edit_block = Block::default()
-        .title(" Edit ".yellow().bold())
+        .title(" Edit ")
         .title_alignment(Alignment::Center)
         .borders(Borders::ALL)
-        .border_type(BorderType::Rounded)
-        .style(Style::default());
+        .border_type(BorderType::Rounded);
 
     frame.render_widget(Clear, edit_area);
     frame.render_widget(edit_block, edit_area);
 
-    let ruleset_block = Block::default().title("Ruleset").borders(Borders::ALL);
-    let ruleset = app.ant_sim.as_ref().unwrap().rules_input.clone();
+    let ruleset_layout_v = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(1),
+            Constraint::Length(3),
+            Constraint::Length(1),
+        ])
+        .split(edit_area);
 
-    let ruleset_paragraph = Paragraph::new(ruleset).block(ruleset_block);
-    frame.render_widget(ruleset_paragraph, edit_area);
+    let ruleset_layout_h = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Length(1),
+            Constraint::Min(1),
+            Constraint::Length(1),
+        ])
+        .split(ruleset_layout_v[1]);
+
+    let scroll = ant_sim
+        .rules_input
+        .visual_scroll(edit_area_width.saturating_sub(5) as usize);
+
+    let input = Paragraph::new(ant_sim.rules_input.value())
+        .scroll((0, scroll as u16))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(match ant_sim.rules_input_mode {
+                    InputMode::Normal => Style::default(),
+                    InputMode::Editing => Style::default().yellow().bold(),
+                })
+                .title(" Input "),
+        );
+
+    frame.render_widget(input, ruleset_layout_h[1]);
+
+    match ant_sim.rules_input_mode {
+        InputMode::Normal =>
+            // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
+            {}
+
+        InputMode::Editing => {
+            // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
+            frame.set_cursor_position((
+                // Put cursor past the end of the input text
+                ruleset_layout_h[1].x
+                    + ((ant_sim.rules_input.visual_cursor()).saturating_sub(scroll)) as u16
+                    + 1,
+                // Move one line down, from the border to the input line
+                ruleset_layout_h[1].y + 1,
+            ))
+        }
+    }
 }

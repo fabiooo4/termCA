@@ -13,6 +13,11 @@ pub enum Screen {
     Exit,
 }
 
+pub enum InputMode {
+    Normal,
+    Editing
+}
+
 pub struct SimulationItem<'a> {
     pub item: ListItem<'a>,
     pub screen: Screen,
@@ -107,7 +112,7 @@ impl App<'_> {
         self.sim_list_state.select_last();
     }
 
-    pub fn change_screen(&mut self) {
+    pub fn change_screen_selected(&mut self) {
         if let Some(i) = self.sim_list_state.selected() {
             self.current_screen = self.simulation_items[i].screen
         }
@@ -117,27 +122,27 @@ impl App<'_> {
         }
     }
 
-    // List of CA's settings state handling
-    pub fn settings_select_none(&mut self) {
+    // List of CA's edit state handling
+    pub fn edit_select_none(&mut self) {
         self.settings_list_state.select(None);
     }
 
-    pub fn settings_select_idx(&mut self, idx: Option<usize>) {
+    pub fn edit_select_idx(&mut self, idx: Option<usize>) {
         self.settings_list_state.select(idx);
     }
 
-    pub fn settings_select_next(&mut self) {
+    pub fn edit_select_next(&mut self) {
         self.settings_list_state.select_next();
     }
-    pub fn settings_select_previous(&mut self) {
+    pub fn edit_select_previous(&mut self) {
         self.settings_list_state.select_previous();
     }
 
-    pub fn settings_select_first(&mut self) {
+    pub fn edit_select_first(&mut self) {
         self.settings_list_state.select_first();
     }
 
-    pub fn settings_select_last(&mut self) {
+    pub fn edit_select_last(&mut self) {
         self.settings_list_state.select_last();
     }
 }

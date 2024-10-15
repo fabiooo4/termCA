@@ -1,12 +1,14 @@
-use crate::app::App;
+use crate::app::{App, InputMode};
 use ratatui::style::Color;
+use tui_input::Input;
 
 use super::{Direction, Grid};
 
 /// Struct that holds the ant simulation data
 pub struct AntSim {
     pub ants: Vec<Ant>,        // Vector that holds the ants
-    pub rules_input: String,   // Ant ruleset
+    pub rules_input: Input,    // Ant ruleset
+    pub rules_input_mode: InputMode,    // Ant ruleset
     pub grid: Grid,            // Grid of cells
     pub states: Vec<Color>,    // Possible states of the cells
     pub rules: Vec<Direction>, // Rules for the ant
@@ -17,7 +19,8 @@ impl Default for AntSim {
     fn default() -> Self {
         AntSim {
             ants: vec![Ant::default()],
-            rules_input: String::from("RL"),
+            rules_input: Input::default(),
+            rules_input_mode: InputMode::Normal,
             grid: Grid::new(),
             states: vec![
                 Color::Reset,
@@ -55,8 +58,10 @@ impl Default for Ant {
     /// Constructs a new empty `Ant`
     fn default() -> Self {
         Ant {
-            x: 0,
-            y: 0,
+            // Set position to invalid position to reposition in the center of the screen when the
+            // frame is available
+            x: usize::MAX,
+            y: usize::MAX,
             color: Color::Indexed(16),
             direction: Direction::Up,
         }
@@ -74,7 +79,6 @@ impl Ant {
         }
     }
 }
-
 
 impl AntSim {
     /// Parses the ant ruleset from a string

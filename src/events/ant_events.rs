@@ -1,10 +1,11 @@
 use std::time::Duration;
 
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::style::Color;
+use tui_input::{backend::crossterm::EventHandler, InputRequest};
 
 use crate::{
-    app::{App, Screen},
+    app::{App, InputMode, Screen},
     simulations::ant::AntSim,
 };
 
@@ -67,23 +68,55 @@ pub fn main(key: KeyEvent, app: &mut App) {
 }
 
 pub fn edit(key: KeyEvent, app: &mut App) {
-    match key.code {
-        KeyCode::Char('q') | KeyCode::Char('Q') => {
-            app.editing = None;
-            app.ant_sim = None;
-        }
-        KeyCode::Backspace => {
-            app.ant_sim.as_mut().unwrap().rules_input.pop();
-        }
-        KeyCode::Char(c) => {
-            let allowed_chars = "rlfbRLFB";
-            if !allowed_chars.contains(c) {
-                return;
-            }
+    match app.ant_sim.as_ref().unwrap().rules_input_mode {
+        InputMode::Normal => {
+            match key.code {
+                KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => {
+                    app.editing = None;
+                    app.ant_sim = None;
+                }
 
-            app.ant_sim.as_mut().unwrap().rules_input.push(c.to_ascii_uppercase());
+                KeyCode::Enter => {
+                    let ant_sim = app.ant_sim.as_mut().unwrap();
+
+                    // Parse the user inserted rules
+                    ant_sim.rules = AntSim::parse_ant_ruleset(&ant_sim.rules_input.value());
+                    ant_sim.rules_input.reset();
+
+                    // Change the screen
+                    app.editing = None;
+                    app.current_screen = Screen::Ant;
+                }
+
+                KeyCode::Char(' ') => {
+                    app.ant_sim.as_mut().unwrap().rules_input_mode = InputMode::Editing;
+                }
+                _ => {}
+            }
         }
-        _ => {}
+        InputMode::Editing => match key.code {
+            KeyCode::Esc => {
+                app.ant_sim.as_mut().unwrap().rules_input_mode = InputMode::Normal;
+            }
+            _ => {
+                let ant_sim = app.ant_sim.as_mut().unwrap();
+                let allowed_chars = "rlfbRLFB";
+
+                // Only handle allowed characters
+                ant_sim
+                    .rules_input
+                    .handle_event(&Event::Key(match key.code {
+                        KeyCode::Char(c) => {
+                            if allowed_chars.contains(c) {
+                                KeyEvent::from(KeyCode::Char(c.to_ascii_uppercase()))
+                            } else {
+                                KeyEvent::from(KeyCode::Null)
+                            }
+                        }
+                        _ => key,
+                    }));
+            }
+        },
     }
 }
 

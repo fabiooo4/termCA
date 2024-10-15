@@ -548,6 +548,7 @@ dependencies = [
  "rand",
  "ratatui",
  "tui-big-text",
+ "tui-input",
 ]
 
 [[package]]
@@ -560,6 +561,16 @@ dependencies = [
  "font8x8",
  "itertools",
  "ratatui",
+]
+
+[[package]]
+name = "tui-input"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd137780d743c103a391e06fe952487f914b299a4fe2c3626677f6a6339a7c6b"
+dependencies = [
+ "ratatui",
+ "unicode-width",
 ]
 
 [[package]]
