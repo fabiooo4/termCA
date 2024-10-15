@@ -5,9 +5,8 @@ use ratatui::style::Color;
 
 /// Struct that holds the ant simulation data
 pub struct AntSim {
-    pub ants: Vec<Ant>,
-    /// Vector that holds the ants
-    pub rules_input: String, // Ant ruleset
+    pub ants: Vec<Ant>,        // Vector that holds the ants
+    pub rules_input: String,   // Ant ruleset
     pub grid: Grid,            // Grid of cells
     pub states: Vec<Color>,    // Possible states of the cells
     pub rules: Vec<Direction>, // Rules for the ant

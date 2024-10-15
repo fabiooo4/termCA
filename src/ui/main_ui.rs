@@ -191,6 +191,9 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         render_help(frame, help_entries);
     }
 
+    /////////////////////////////
+    // Edit screen
+    /////////////////////////////
     if let Some(edit_sim) = app.editing {
         render_edit(frame, edit_sim, app);
     }
