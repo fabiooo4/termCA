@@ -4,7 +4,7 @@ use crate::{app::{App, Screen}, simulations::ant::AntSim};
 
 pub fn main(key: KeyEvent, app: &mut App) {
     match key.code {
-        KeyCode::Char('q') | KeyCode::Char('Q') => app.current_screen = Screen::Exit,
+        KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => app.current_screen = Screen::Exit,
         KeyCode::Char('?') => {
             app.help_screen = !app.help_screen;
         }

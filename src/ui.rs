@@ -90,7 +90,7 @@ pub fn render_help(frame: &mut Frame, entries: Vec<(Line, Line)>) {
         .unwrap_or(1);
 
     let help_area = centered_rect_length(
-        (longest_key + longest_label + 3) as u16,
+        (longest_key + longest_label + 5) as u16,
         (keys.len() + 4) as u16,
         frame.area(),
     );
@@ -103,6 +103,7 @@ pub fn render_help(frame: &mut Frame, entries: Vec<(Line, Line)>) {
 
     let help_layout = Layout::default()
         .direction(Direction::Vertical)
+        .margin(2)
         .constraints([
             Constraint::Length(2),
             Constraint::Min(keys.len() as u16),
@@ -112,7 +113,13 @@ pub fn render_help(frame: &mut Frame, entries: Vec<(Line, Line)>) {
 
     let help_center = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(35), Constraint::Percentage(65)])
+        .constraints([
+            Constraint::Length(1),
+            Constraint::Max(longest_key as u16),
+            Constraint::Length(1),
+            Constraint::Max(longest_label as u16),
+            Constraint::Length(1),
+        ])
         .split(help_layout[1]);
 
     let help_keys = Paragraph::new(keys).alignment(Alignment::Right);
@@ -120,6 +127,6 @@ pub fn render_help(frame: &mut Frame, entries: Vec<(Line, Line)>) {
 
     frame.render_widget(Clear, help_area);
     frame.render_widget(help_block, help_area);
-    frame.render_widget(help_keys, help_center[0]);
-    frame.render_widget(help_labels, help_center[1]);
+    frame.render_widget(help_keys, help_center[1]);
+    frame.render_widget(help_labels, help_center[3]);
 }

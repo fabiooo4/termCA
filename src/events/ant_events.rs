@@ -11,7 +11,7 @@ use crate::{
 
 pub fn main(key: KeyEvent, app: &mut App) {
     match key.code {
-        KeyCode::Char('q') | KeyCode::Char('Q') => {
+        KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => {
             app.current_screen = Screen::Main;
             app.stop_all();
         }
@@ -96,6 +96,9 @@ pub fn edit(key: KeyEvent, app: &mut App) {
         }
         InputMode::Editing => match key.code {
             KeyCode::Esc => {
+                app.ant_sim.as_mut().unwrap().rules_input_mode = InputMode::Normal;
+            }
+            KeyCode::Enter => {
                 app.ant_sim.as_mut().unwrap().rules_input_mode = InputMode::Normal;
             }
             _ => {

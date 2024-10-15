@@ -176,15 +176,15 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     /////////////////////////////
 
     let help_entries: Vec<(Line, Line)> = vec![
-        (Line::from("Q ".yellow()), Line::from("Quit")),
-        (Line::from("? ".yellow()), Line::from("Help")),
-        (Line::from("Enter ".yellow()), Line::from("Select")),
-        (Line::from("K / ↑ ".yellow()), Line::from("Scroll Up")),
-        (Line::from("J / ↓ ".yellow()), Line::from("Scroll Down")),
-        (Line::from("L / → ".yellow()), Line::from("Scroll Right")),
-        (Line::from("H / ← ".yellow()), Line::from("Scroll Left")),
-        (Line::from("g ".yellow()), Line::from("Scroll to Bottom")),
-        (Line::from("G ".yellow()), Line::from("Scroll to Top")),
+        (Line::from("Q / ESC".yellow()), Line::from("Quit")),
+        (Line::from("?".yellow()), Line::from("Help")),
+        (Line::from("Enter".yellow()), Line::from("Select")),
+        (Line::from("K / ↑".yellow()), Line::from("Scroll Up")),
+        (Line::from("J / ↓".yellow()), Line::from("Scroll Down")),
+        (Line::from("L / →".yellow()), Line::from("Scroll Right")),
+        (Line::from("H / ←".yellow()), Line::from("Scroll Left")),
+        (Line::from("g".yellow()), Line::from("Scroll to Bottom")),
+        (Line::from("G".yellow()), Line::from("Scroll to Top")),
     ];
 
     if app.help_screen {
