@@ -245,6 +245,9 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     let edit_area_width = 27;
     let edit_area_height = 10;
 
+    /////////////////////////////
+    // Centered popup
+    /////////////////////////////
     let edit_area = centered_rect_length(edit_area_width, edit_area_height, frame.area());
 
     // Area with offsets for the border
@@ -266,27 +269,25 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     frame.render_widget(Clear, edit_area);
     frame.render_widget(edit_block, edit_area);
 
-    let ruleset_layout_v = Layout::default()
+    let horizontal_margin = 1;
+    let vertical_chunks = Layout::default()
         .direction(Direction::Vertical)
+        .horizontal_margin(horizontal_margin)
         .constraints([
-            Constraint::Length(1),
             Constraint::Length(3),
             Constraint::Length(1),
+            Constraint::Fill(1),
         ])
-        .split(edit_area);
+        .split(scroll_view.area());
 
-    let ruleset_layout_h = Layout::default()
+    let horizontal_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Length(1),
-            Constraint::Min(1),
-            Constraint::Length(1),
-        ])
-        .split(ruleset_layout_v[1]);
+        .constraints([Constraint::Min(1)])
+        .split(vertical_chunks[0]);
 
     let input_scroll = ant_sim
         .rules_input
-        .visual_scroll(edit_area_width.saturating_sub(5) as usize);
+        .visual_scroll(scroll_view.area().width.saturating_sub(5) as usize);
 
     let input = Paragraph::new(ant_sim.rules_input.value())
         .scroll((0, input_scroll as u16))
@@ -301,25 +302,22 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                 .title(" Input "),
         );
 
-    scroll_view.render_widget(input, Rect::new(0, 0, edit_area_width, 3));
+    scroll_view.render_widget(input, horizontal_chunks[0]);
 
     match ant_sim.rules_input_mode {
-        InputMode::Normal =>
-            // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
-            {}
-
+        InputMode::Normal => {}
         InputMode::Editing => {
-            // TODO: Fix this to be dynamic inside scroll view
             // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
             if ant_sim.scroll_state.offset().y < 2 {
                 frame.set_cursor_position((
                     // Put cursor past the end of the input text
-                    ruleset_layout_h[1].x
+                    scroll_area.x
                         + ((ant_sim.rules_input.visual_cursor()).saturating_sub(input_scroll))
                             as u16
-                        + 1,
+                        + horizontal_margin * 2,
                     // Move one line down, from the border to the input line
-                    ruleset_layout_h[1].y + 1 - ant_sim.scroll_state.offset().y,
+                    // and offset relative to scroll
+                    scroll_area.y + 1 - ant_sim.scroll_state.offset().y,
                 ))
             }
         }
