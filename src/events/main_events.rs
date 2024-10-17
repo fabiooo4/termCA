@@ -1,6 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent};
 
-use crate::{app::{App, Screen}, simulations::ant::AntSim};
+use crate::{app::{App, Screen}, simulations::ant::{Ant, AntSim}};
 
 pub fn main(key: KeyEvent, app: &mut App) {
     match key.code {
@@ -89,6 +89,10 @@ pub fn main(key: KeyEvent, app: &mut App) {
                     Screen::Ant => {
                         // Create a default ant simulation to be able to edit it
                         app.start_ant_default();
+                        app.ant_sim.as_mut().unwrap().ants = vec![
+                            Ant::default(),
+                            Ant::default(),
+                        ];
                         app.editing = Some(app.simulation_items[i].screen);
                     }
                     _ => {}

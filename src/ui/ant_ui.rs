@@ -1,5 +1,8 @@
+use std::usize;
+
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect, Size},
+    text::Span,
     Frame,
 };
 
@@ -18,7 +21,10 @@ use tui_scrollview::ScrollView;
 
 use crate::{
     app::{App, InputMode},
-    simulations::{self, ant::AntSim},
+    simulations::{
+        self,
+        ant::{Ant, AntSim},
+    },
 };
 
 use super::{centered_rect_length, render_help};
@@ -148,7 +154,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     .position(Position::Bottom)
     .alignment(Alignment::Right);
 
-    let top_left_debug = Title::from(Line::from(vec![
+    /* let top_left_debug = Title::from(Line::from(vec![
         "(".into(),
         ant_sim.ants[0].x.to_string().yellow(),
         "/".into(),
@@ -172,7 +178,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         height.to_string().red(),
         "]".into(),
         " ".into(),
-    ]));
+    ])); */
 
     /////////////////////////////
     // Simulation canvas
@@ -183,7 +189,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Block::default()
                 .border_type(BorderType::Double)
                 .borders(Borders::ALL)
-                .title(top_left_debug)
+                // .title(top_left_debug)
                 .title(top_title)
                 .title(bottom_left_title)
                 .title(bottom_right_title)
@@ -280,11 +286,6 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         ])
         .split(scroll_view.area());
 
-    let horizontal_chunks = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Min(1)])
-        .split(vertical_chunks[0]);
-
     let input_scroll = ant_sim
         .rules_input
         .visual_scroll(scroll_view.area().width.saturating_sub(5) as usize);
@@ -302,7 +303,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                 .title(" Input "),
         );
 
-    scroll_view.render_widget(input, horizontal_chunks[0]);
+    scroll_view.render_widget(input, vertical_chunks[0]);
 
     match ant_sim.rules_input_mode {
         InputMode::Normal => {}
@@ -322,6 +323,23 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             }
         }
     }
+
+    let mut lines = vec![];
+    for (i, ant) in ant_sim.ants.iter().enumerate() {
+        lines.push(Line::from(format!(
+            "Ant {}: x{} y{}",
+            i,
+            match ant.x {
+                usize::MAX => "Center",
+                _ => "0",
+            },
+            match ant.y {
+                usize::MAX => "Center",
+                _ => "0",
+            }
+        )));
+    }
+    scroll_view.render_widget(Paragraph::new(lines), vertical_chunks[2]);
 
     frame.render_stateful_widget(scroll_view, scroll_area, &mut ant_sim.scroll_state);
 }
