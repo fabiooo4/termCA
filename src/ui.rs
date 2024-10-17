@@ -90,7 +90,7 @@ pub fn render_help(frame: &mut Frame, entries: Vec<(Line, Line)>) {
         .unwrap_or(1);
 
     let help_area = centered_rect_length(
-        (longest_key + longest_label + 5) as u16,
+        (longest_key + longest_label + 7) as u16,
         (keys.len() + 4) as u16,
         frame.area(),
     );

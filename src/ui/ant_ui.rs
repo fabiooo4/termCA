@@ -225,7 +225,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     /////////////////////////////
 
     let help_entries: Vec<(Line, Line)> = vec![
-        (Line::from("Q / ESC".yellow()), Line::from("Quit")),
+        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
         (Line::from("?".yellow()), Line::from("Help")),
         (Line::from("Space".yellow()), Line::from("Start/Pause")),
         (Line::from("K / ↑".yellow()), Line::from("Speed Up")),
