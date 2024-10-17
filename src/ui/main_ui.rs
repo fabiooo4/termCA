@@ -148,7 +148,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Highlight added to the selected row, but on the column that is not selected
     let partial_highlight = Style::default().white().bold();
 
-    if let Some(idx) = app.settings_list_state.selected() {
+    if let Some(idx) = app.edit_list_state.selected() {
         sim_items[idx] = sim_items[idx].clone().style(partial_highlight);
     }
 
@@ -169,14 +169,14 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .direction(ListDirection::TopToBottom);
 
     frame.render_stateful_widget(sim_list, list_layout[1], &mut app.sim_list_state);
-    frame.render_stateful_widget(settings_list, list_layout[2], &mut app.settings_list_state);
+    frame.render_stateful_widget(settings_list, list_layout[2], &mut app.edit_list_state);
 
     /////////////////////////////
     // Help screen
     /////////////////////////////
 
     let help_entries: Vec<(Line, Line)> = vec![
-        (Line::from("Q / ESC".yellow()), Line::from("Quit")),
+        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
         (Line::from("?".yellow()), Line::from("Help")),
         (Line::from("Enter".yellow()), Line::from("Select")),
         (Line::from("K / ↑".yellow()), Line::from("Scroll Up")),

@@ -34,7 +34,7 @@ pub struct App<'a> {
     pub marker: Marker,          // Character to draw the cells
     pub simulation_items: Vec<SimulationItem<'a>>,
     pub sim_list_state: ListState, // State of the list of CAs
-    pub settings_list_state: ListState,
+    pub edit_list_state: ListState,
 
     /// Ant simulation data (optional because it's only used in the Ant
     /// screen)
@@ -63,7 +63,7 @@ impl App<'_> {
                 },
             ],
             sim_list_state: ListState::default().with_selected(Some(0)),
-            settings_list_state: ListState::default(),
+            edit_list_state: ListState::default(),
 
             ant_sim: None,
         }
@@ -117,32 +117,32 @@ impl App<'_> {
             self.current_screen = self.simulation_items[i].screen
         }
 
-        if let Some(i) = self.settings_list_state.selected() {
+        if let Some(i) = self.edit_list_state.selected() {
             self.current_screen = self.simulation_items[i].screen
         }
     }
 
     // List of CA's edit state handling
     pub fn edit_select_none(&mut self) {
-        self.settings_list_state.select(None);
+        self.edit_list_state.select(None);
     }
 
     pub fn edit_select_idx(&mut self, idx: Option<usize>) {
-        self.settings_list_state.select(idx);
+        self.edit_list_state.select(idx);
     }
 
     pub fn edit_select_next(&mut self) {
-        self.settings_list_state.select_next();
+        self.edit_list_state.select_next();
     }
     pub fn edit_select_previous(&mut self) {
-        self.settings_list_state.select_previous();
+        self.edit_list_state.select_previous();
     }
 
     pub fn edit_select_first(&mut self) {
-        self.settings_list_state.select_first();
+        self.edit_list_state.select_first();
     }
 
     pub fn edit_select_last(&mut self) {
-        self.settings_list_state.select_last();
+        self.edit_list_state.select_last();
     }
 }
