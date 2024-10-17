@@ -45,7 +45,7 @@ impl Default for AntSim {
             rules: vec![Direction::Right, Direction::Left],
             generation: 0,
 
-            rules_input: Input::default(),
+            rules_input: Input::from(String::from("RL")),
             rules_input_mode: InputMode::Normal,
 
             scroll_state: ScrollViewState::default(),

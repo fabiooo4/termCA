@@ -82,7 +82,13 @@ pub fn edit(key: KeyEvent, app: &mut App) {
 
                     // Parse the user inserted rules
                     ant_sim.rules = AntSim::parse_ant_ruleset(&ant_sim.rules_input.value());
-                    ant_sim.rules_input.reset();
+
+                    // Add states for every rule
+                    ant_sim.states.clear();
+                    ant_sim.states.push(Color::Reset);
+                    ant_sim.rules.iter().enumerate().skip(1).for_each(|(i, _)| {
+                        ant_sim.states.push(Color::Indexed(i as u8))
+                    });
 
                     // Change the screen
                     app.editing = None;

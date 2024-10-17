@@ -77,39 +77,10 @@ impl App<'_> {
         self.speed_multiplier = 1;
     }
 
-    /// Starts the Langton's Ant simulation with the given `AntSim`
-    pub fn start_ant(&mut self, ant_sim: AntSim) {
-        self.stop_all();
-        self.ant_sim = Some(ant_sim);
-    }
-
+    /// Starts the Langton's Ant simulation with default values
     pub fn start_ant_default(&mut self) {
         self.stop_all();
         self.ant_sim = Some(AntSim::default());
-    }
-
-    // List of CAs state handling
-    pub fn sim_select_none(&mut self) {
-        self.sim_list_state.select(None);
-    }
-
-    pub fn sim_select_idx(&mut self, idx: Option<usize>) {
-        self.sim_list_state.select(idx);
-    }
-
-    pub fn sim_select_next(&mut self) {
-        self.sim_list_state.select_next();
-    }
-    pub fn sim_select_previous(&mut self) {
-        self.sim_list_state.select_previous();
-    }
-
-    pub fn sim_select_first(&mut self) {
-        self.sim_list_state.select_first();
-    }
-
-    pub fn sim_select_last(&mut self) {
-        self.sim_list_state.select_last();
     }
 
     pub fn change_screen_selected(&mut self) {
@@ -120,29 +91,5 @@ impl App<'_> {
         if let Some(i) = self.edit_list_state.selected() {
             self.current_screen = self.simulation_items[i].screen
         }
-    }
-
-    // List of CA's edit state handling
-    pub fn edit_select_none(&mut self) {
-        self.edit_list_state.select(None);
-    }
-
-    pub fn edit_select_idx(&mut self, idx: Option<usize>) {
-        self.edit_list_state.select(idx);
-    }
-
-    pub fn edit_select_next(&mut self) {
-        self.edit_list_state.select_next();
-    }
-    pub fn edit_select_previous(&mut self) {
-        self.edit_list_state.select_previous();
-    }
-
-    pub fn edit_select_first(&mut self) {
-        self.edit_list_state.select_first();
-    }
-
-    pub fn edit_select_last(&mut self) {
-        self.edit_list_state.select_last();
     }
 }

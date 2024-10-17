@@ -148,7 +148,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     .position(Position::Bottom)
     .alignment(Alignment::Right);
 
-    /* let top_left_debug = Title::from(Line::from(vec![
+    let top_left_debug = Title::from(Line::from(vec![
         "(".into(),
         ant_sim.ants[0].x.to_string().yellow(),
         "/".into(),
@@ -161,9 +161,9 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         " ".into(),
         ant_sim.ants[0].direction.to_string().yellow(),
         " ".into(),
-        Span::styled(
-            ant_sim.states[ant_sim.generation % ant_sim.states.len()].to_string(),
-            Style::default().fg(ant_sim.states[ant_sim.generation % ant_sim.states.len()]),
+        ratatui::text::Span::styled(
+            ant_sim.grid.cells[ant_sim.ants[0].y][ant_sim.ants[0].x].to_string(),
+            Style::default().fg(ant_sim.grid.cells[ant_sim.ants[0].y][ant_sim.ants[0].x]),
         ),
         " ".into(),
         "[".into(),
@@ -172,7 +172,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         height.to_string().red(),
         "]".into(),
         " ".into(),
-    ])); */
+    ]));
 
     /////////////////////////////
     // Simulation canvas
@@ -183,7 +183,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Block::default()
                 .border_type(BorderType::Double)
                 .borders(Borders::ALL)
-                // .title(top_left_debug)
+                .title(top_left_debug)
                 .title(top_title)
                 .title(bottom_left_title)
                 .title(bottom_right_title)
