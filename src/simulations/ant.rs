@@ -1,26 +1,28 @@
 use crate::app::{App, InputMode};
 use ratatui::style::Color;
 use tui_input::Input;
+use tui_scrollview::ScrollViewState;
 
 use super::{Direction, Grid};
 
 /// Struct that holds the ant simulation data
 pub struct AntSim {
     pub ants: Vec<Ant>,        // Vector that holds the ants
-    pub rules_input: Input,    // Ant ruleset
-    pub rules_input_mode: InputMode,    // Ant ruleset
     pub grid: Grid,            // Grid of cells
     pub states: Vec<Color>,    // Possible states of the cells
     pub rules: Vec<Direction>, // Rules for the ant
     pub generation: usize,     // Number of generations
+
+    pub rules_input: Input,          // Input widget
+    pub rules_input_mode: InputMode, // Input mode
+
+    pub scroll_state: ScrollViewState, // State of the scroll view
 }
 
 impl Default for AntSim {
     fn default() -> Self {
         AntSim {
             ants: vec![Ant::default()],
-            rules_input: Input::default(),
-            rules_input_mode: InputMode::Normal,
             grid: Grid::new(),
             states: vec![
                 Color::Reset,
@@ -42,6 +44,11 @@ impl Default for AntSim {
             ],
             rules: vec![Direction::Right, Direction::Left],
             generation: 0,
+
+            rules_input: Input::default(),
+            rules_input_mode: InputMode::Normal,
+
+            scroll_state: ScrollViewState::default(),
         }
     }
 }

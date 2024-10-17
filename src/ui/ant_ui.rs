@@ -1,5 +1,5 @@
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout, Rect, Size},
     Frame,
 };
 
@@ -14,6 +14,7 @@ use ratatui::{
         Block, BorderType, Borders, Clear, Paragraph,
     },
 };
+use tui_scrollview::ScrollView;
 
 use crate::{
     app::{App, InputMode},
@@ -241,14 +242,20 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 pub fn edit(frame: &mut Frame, app: &mut App) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
 
-    let edit_area_width: usize = 27;
-    let edit_area_height: usize = 5;
+    let edit_area_width = 27;
+    let edit_area_height = 10;
 
     let edit_area = centered_rect_length(
-        edit_area_width as u16,
-        edit_area_height as u16,
+        edit_area_width,
+        edit_area_height,
         frame.area(),
     );
+
+    // Area with offsets for the border
+    let scroll_area = Rect::new(edit_area.x + 1, edit_area.y + 1, edit_area_width - 1, edit_area_height - 2);
+
+    let mut scroll_view = ScrollView::new(Size::new(edit_area_width - 2, 50));
+
     let edit_block = Block::default()
         .title(" Edit ")
         .title_alignment(Alignment::Center)
@@ -276,12 +283,12 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         ])
         .split(ruleset_layout_v[1]);
 
-    let scroll = ant_sim
+    let input_scroll = ant_sim
         .rules_input
         .visual_scroll(edit_area_width.saturating_sub(5) as usize);
 
     let input = Paragraph::new(ant_sim.rules_input.value())
-        .scroll((0, scroll as u16))
+        .scroll((0, input_scroll as u16))
         .block(
             Block::default()
                 .borders(Borders::ALL)
@@ -293,7 +300,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                 .title(" Input "),
         );
 
-    frame.render_widget(input, ruleset_layout_h[1]);
+    scroll_view.render_widget(input, Rect::new(0, 0, edit_area_width, 3));
 
     match ant_sim.rules_input_mode {
         InputMode::Normal =>
@@ -301,15 +308,18 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             {}
 
         InputMode::Editing => {
+            // TODO: Fix this to be dynamic inside scroll view
             // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
             frame.set_cursor_position((
                 // Put cursor past the end of the input text
                 ruleset_layout_h[1].x
-                    + ((ant_sim.rules_input.visual_cursor()).saturating_sub(scroll)) as u16
+                    + ((ant_sim.rules_input.visual_cursor()).saturating_sub(input_scroll)) as u16
                     + 1,
                 // Move one line down, from the border to the input line
                 ruleset_layout_h[1].y + 1,
             ))
         }
     }
+
+    frame.render_stateful_widget(scroll_view, scroll_area, &mut ant_sim.scroll_state);
 }
