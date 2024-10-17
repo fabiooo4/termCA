@@ -68,7 +68,8 @@ pub fn main(key: KeyEvent, app: &mut App) {
 }
 
 pub fn edit(key: KeyEvent, app: &mut App) {
-    match app.ant_sim.as_ref().unwrap().rules_input_mode {
+    let ant_sim = app.ant_sim.as_mut().unwrap();
+    match ant_sim.rules_input_mode {
         InputMode::Normal => {
             match key.code {
                 KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => {
@@ -91,6 +92,15 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                 KeyCode::Char(' ') => {
                     app.ant_sim.as_mut().unwrap().rules_input_mode = InputMode::Editing;
                 }
+
+                KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
+                    ant_sim.scroll_state.scroll_down()
+                }
+
+                KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => {
+                    ant_sim.scroll_state.scroll_up()
+                }
+
                 _ => {}
             }
         }

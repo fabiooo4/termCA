@@ -245,16 +245,17 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     let edit_area_width = 27;
     let edit_area_height = 10;
 
-    let edit_area = centered_rect_length(
-        edit_area_width,
-        edit_area_height,
-        frame.area(),
-    );
+    let edit_area = centered_rect_length(edit_area_width, edit_area_height, frame.area());
 
     // Area with offsets for the border
-    let scroll_area = Rect::new(edit_area.x + 1, edit_area.y + 1, edit_area_width - 1, edit_area_height - 2);
+    let scroll_area = Rect::new(
+        edit_area.x + 1,
+        edit_area.y + 1,
+        edit_area_width - 1,
+        edit_area_height - 2,
+    );
 
-    let mut scroll_view = ScrollView::new(Size::new(edit_area_width - 2, 50));
+    let mut scroll_view = ScrollView::new(Size::new(edit_area_width - 2, edit_area_height));
 
     let edit_block = Block::default()
         .title(" Edit ")
@@ -310,14 +311,17 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         InputMode::Editing => {
             // TODO: Fix this to be dynamic inside scroll view
             // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
-            frame.set_cursor_position((
-                // Put cursor past the end of the input text
-                ruleset_layout_h[1].x
-                    + ((ant_sim.rules_input.visual_cursor()).saturating_sub(input_scroll)) as u16
-                    + 1,
-                // Move one line down, from the border to the input line
-                ruleset_layout_h[1].y + 1,
-            ))
+            if ant_sim.scroll_state.offset().y < 2 {
+                frame.set_cursor_position((
+                    // Put cursor past the end of the input text
+                    ruleset_layout_h[1].x
+                        + ((ant_sim.rules_input.visual_cursor()).saturating_sub(input_scroll))
+                            as u16
+                        + 1,
+                    // Move one line down, from the border to the input line
+                    ruleset_layout_h[1].y + 1 - ant_sim.scroll_state.offset().y,
+                ))
+            }
         }
     }
 
