@@ -70,7 +70,7 @@ pub fn main(key: KeyEvent, app: &mut App) {
 pub fn edit(key: KeyEvent, app: &mut App) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
     let scroll_factor =
-        if ant_sim.edit_item_selected > 0 && ant_sim.edit_item_selected <= ant_sim.ants.len() + 2 {
+        if ant_sim.edit_item_selected > 0 && ant_sim.edit_item_selected < ant_sim.ants.len() + 1 {
             5
         } else if ant_sim.edit_item_selected == 0 {
             0
