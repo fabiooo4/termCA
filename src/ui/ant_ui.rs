@@ -283,7 +283,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     frame.render_widget(edit_block, edit_area);
 
     let horizontal_margin = 1;
-    let vertical_chunks: [Rect; 6] = Layout::default()
+    let vertical_chunks = Layout::default()
         .direction(Direction::Vertical)
         .horizontal_margin(horizontal_margin)
         .constraints([
@@ -294,7 +294,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             Constraint::Length(1),
             Constraint::Length(3),
         ])
-        .areas(scroll_view.area());
+        .split(scroll_view.area());
 
     /////////////////////////////
     // Ruleset input
@@ -316,7 +316,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                         .bold()
                         .remove_modifier(Modifier::REVERSED),
                 })
-                .title(" Ruleset "),
+                .title(" Input "),
         )
         .style(if ant_sim.edit_item_selected == 0 {
             match ant_sim.rules_input_mode {
@@ -357,10 +357,10 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         .iter()
         .map(|_| Constraint::Length(2 + 3))
         .collect();
-    let ant_chunks: [Rect; 1] = Layout::default()
+    let ant_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(ant_constraints)
-        .areas(vertical_chunks[2]);
+        .split(vertical_chunks[2]);
 
     for (i, ant) in ant_sim.ants.iter().enumerate() {
         let ant_widget = Paragraph::new(format!(
@@ -407,14 +407,14 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             not_selected_style
         });
 
-    let add_chunk: [Rect; 3] = Layout::default()
+    let add_chunk = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
             Constraint::Fill(1),
             Constraint::Length(2 + 7),
             Constraint::Fill(1),
         ])
-        .areas(vertical_chunks[3]);
+        .split(vertical_chunks[3]);
     scroll_view.render_widget(add, add_chunk[1]);
 
     /////////////////////////////
@@ -433,14 +433,14 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             not_selected_style
         });
 
-    let confirm_chunk: [Rect; 3] = Layout::default()
+    let confirm_chunk = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
             Constraint::Fill(1),
             Constraint::Length(18),
             Constraint::Fill(1),
         ])
-        .areas(vertical_chunks[5]);
+        .split(vertical_chunks[5]);
     scroll_view.render_widget(confirm, confirm_chunk[1]);
 
     frame.render_stateful_widget(scroll_view, scroll_area, &mut ant_sim.scroll_state);
