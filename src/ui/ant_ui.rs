@@ -249,7 +249,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 pub fn edit(frame: &mut Frame, app: &mut App) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
 
-    let edit_area_width = 27;
+    let edit_area_width = 28;
     let edit_area_height = 15;
 
     let selected_style = Style::default().bold();
@@ -268,7 +268,10 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         edit_area_height - 2,
     );
 
-    let mut scroll_view = ScrollView::new(Size::new(edit_area_width - 2, edit_area_height));
+    let mut scroll_view = ScrollView::new(Size::new(
+        edit_area_width - 2,
+        (edit_area_height - 2) + (ant_sim.ants.len().saturating_sub(1) as u16) * 5 + 3,
+    ));
 
     let edit_block = Block::default()
         .title(" Edit ")
@@ -280,15 +283,18 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     frame.render_widget(edit_block, edit_area);
 
     let horizontal_margin = 1;
-    let vertical_chunks = Layout::default()
+    let vertical_chunks: [Rect; 6] = Layout::default()
         .direction(Direction::Vertical)
         .horizontal_margin(horizontal_margin)
         .constraints([
             Constraint::Length(3),
             Constraint::Length(1),
-            Constraint::Fill(1),
+            Constraint::Max(ant_sim.ants.len() as u16 * 5),
+            Constraint::Length(3),
+            Constraint::Length(1),
+            Constraint::Length(3),
         ])
-        .split(scroll_view.area());
+        .areas(scroll_view.area());
 
     /////////////////////////////
     // Ruleset input
@@ -310,7 +316,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                         .bold()
                         .remove_modifier(Modifier::REVERSED),
                 })
-                .title(" Input "),
+                .title(" Ruleset "),
         )
         .style(if ant_sim.edit_item_selected == 0 {
             match ant_sim.rules_input_mode {
@@ -351,10 +357,10 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         .iter()
         .map(|_| Constraint::Length(2 + 3))
         .collect();
-    let ant_chunks = Layout::default()
+    let ant_chunks: [Rect; 1] = Layout::default()
         .direction(Direction::Vertical)
         .constraints(ant_constraints)
-        .split(vertical_chunks[2]);
+        .areas(vertical_chunks[2]);
 
     for (i, ant) in ant_sim.ants.iter().enumerate() {
         let ant_widget = Paragraph::new(format!(
@@ -385,6 +391,58 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         scroll_view.render_widget(ant_widget, ant_chunks[i]);
     }
 
+    /////////////////////////////
+    // Add ant button
+    /////////////////////////////
+    let add = Paragraph::new("Add ant")
+        .alignment(Alignment::Center)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded),
+        )
+        .style(if ant_sim.edit_item_selected == 1 + ant_sim.ants.len() {
+            selected_style
+        } else {
+            not_selected_style
+        });
+
+    let add_chunk: [Rect; 3] = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Fill(1),
+            Constraint::Length(2 + 7),
+            Constraint::Fill(1),
+        ])
+        .areas(vertical_chunks[3]);
+    scroll_view.render_widget(add, add_chunk[1]);
+
+    /////////////////////////////
+    // Confirm button
+    /////////////////////////////
+
+    let confirm = Paragraph::new("Start simulation")
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded),
+        )
+        .style(if ant_sim.edit_item_selected == 2 + ant_sim.ants.len() {
+            selected_style
+        } else {
+            not_selected_style
+        });
+
+    let confirm_chunk: [Rect; 3] = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Fill(1),
+            Constraint::Length(18),
+            Constraint::Fill(1),
+        ])
+        .areas(vertical_chunks[5]);
+    scroll_view.render_widget(confirm, confirm_chunk[1]);
+
     frame.render_stateful_widget(scroll_view, scroll_area, &mut ant_sim.scroll_state);
 
     /////////////////////////////
@@ -394,10 +452,9 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     let help_entries: Vec<(Line, Line)> = vec![
         (Line::from("Q / Esc".yellow()), Line::from("Quit")),
         (Line::from("?".yellow()), Line::from("Help")),
-        (Line::from("Space".yellow()), Line::from("Start simulation")),
-        (Line::from("Enter".yellow()), Line::from("Edit item")),
-        (Line::from("K / ↑".yellow()), Line::from("Select previous")),
-        (Line::from("J / ↓".yellow()), Line::from("Select next")),
+        (Line::from("Enter".yellow()), Line::from("Select item")),
+        (Line::from("K / ↑".yellow()), Line::from("Previous item")),
+        (Line::from("J / ↓".yellow()), Line::from("Next item")),
     ];
 
     if app.help_screen {

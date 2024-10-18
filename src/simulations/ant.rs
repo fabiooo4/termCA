@@ -42,6 +42,7 @@ impl Default for AntSim {
                 Color::Indexed(7),
                 Color::Indexed(8),
                 Color::Indexed(15),
+                Color::Indexed(17),
             ],
             rules: vec![Direction::Right, Direction::Left],
             generation: 0,
