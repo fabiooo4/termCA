@@ -77,34 +77,49 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                     app.ant_sim = None;
                 }
 
-                KeyCode::Enter => {
-                    let ant_sim = app.ant_sim.as_mut().unwrap();
+                KeyCode::Char('?') => {
+                    app.help_screen = !app.help_screen;
+                }
 
+                KeyCode::Char(' ') => {
                     // Parse the user inserted rules
                     ant_sim.rules = AntSim::parse_ant_ruleset(&ant_sim.rules_input.value());
 
                     // Add states for every rule
                     ant_sim.states.clear();
                     ant_sim.states.push(Color::Reset);
-                    ant_sim.rules.iter().enumerate().skip(1).for_each(|(i, _)| {
-                        ant_sim.states.push(Color::Indexed(i as u8))
-                    });
+                    ant_sim
+                        .rules
+                        .iter()
+                        .enumerate()
+                        .skip(1)
+                        .for_each(|(i, _)| ant_sim.states.push(Color::Indexed(i as u8)));
 
                     // Change the screen
                     app.editing = None;
                     app.current_screen = Screen::Ant;
                 }
 
-                KeyCode::Char(' ') => {
-                    app.ant_sim.as_mut().unwrap().rules_input_mode = InputMode::Editing;
+                KeyCode::Enter => {
+                    if ant_sim.edit_item_selected == 0 {
+                        app.ant_sim.as_mut().unwrap().rules_input_mode = InputMode::Editing;
+                    }
                 }
 
                 KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
-                    ant_sim.scroll_state.scroll_down()
+                    for _ in 0..3 {
+                        ant_sim.scroll_state.scroll_down();
+                    }
+                    if ant_sim.edit_item_selected < 2 {
+                        ant_sim.edit_item_selected = ant_sim.edit_item_selected.saturating_add(1);
+                    }
                 }
 
                 KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => {
-                    ant_sim.scroll_state.scroll_up()
+                    for _ in 0..3 {
+                        ant_sim.scroll_state.scroll_up();
+                    }
+                    ant_sim.edit_item_selected = ant_sim.edit_item_selected.saturating_sub(1);
                 }
 
                 _ => {}

@@ -187,7 +187,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         (Line::from("G".yellow()), Line::from("Scroll to Top")),
     ];
 
-    if app.help_screen {
+    if app.help_screen && app.editing.is_none() {
         render_help(frame, help_entries);
     }
 

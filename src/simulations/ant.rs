@@ -16,7 +16,8 @@ pub struct AntSim {
     pub rules_input: Input,          // Input widget
     pub rules_input_mode: InputMode, // Input mode
 
-    pub scroll_state: ScrollViewState, // State of the scroll view
+    pub scroll_state: ScrollViewState, // State of the edit scroll view
+    pub edit_item_selected: usize,     // Index of selected item in edit mode
 }
 
 impl Default for AntSim {
@@ -49,6 +50,7 @@ impl Default for AntSim {
             rules_input_mode: InputMode::Normal,
 
             scroll_state: ScrollViewState::default(),
+            edit_item_selected: 0,
         }
     }
 }

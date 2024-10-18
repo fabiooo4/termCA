@@ -2,6 +2,7 @@ use std::usize;
 
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect, Size},
+    style::Modifier,
     text::Span,
     Frame,
 };
@@ -249,7 +250,10 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
 
     let edit_area_width = 27;
-    let edit_area_height = 10;
+    let edit_area_height = 15;
+
+    let selected_style = Style::default().bold();
+    let not_selected_style = Style::default().gray();
 
     /////////////////////////////
     // Centered popup
@@ -286,6 +290,9 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         ])
         .split(scroll_view.area());
 
+    /////////////////////////////
+    // Ruleset input
+    /////////////////////////////
     let input_scroll = ant_sim
         .rules_input
         .visual_scroll(scroll_view.area().width.saturating_sub(5) as usize);
@@ -298,10 +305,21 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                 .border_type(BorderType::Rounded)
                 .border_style(match ant_sim.rules_input_mode {
                     InputMode::Normal => Style::default(),
-                    InputMode::Editing => Style::default().yellow().bold(),
+                    InputMode::Editing => Style::default()
+                        .yellow()
+                        .bold()
+                        .remove_modifier(Modifier::REVERSED),
                 })
                 .title(" Input "),
-        );
+        )
+        .style(if ant_sim.edit_item_selected == 0 {
+            match ant_sim.rules_input_mode {
+                InputMode::Normal => selected_style,
+                InputMode::Editing => Style::default(),
+            }
+        } else {
+            not_selected_style
+        });
 
     scroll_view.render_widget(input, vertical_chunks[0]);
 
@@ -324,11 +342,23 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         }
     }
 
-    let mut lines = vec![];
+    /////////////////////////////
+    // Ants list
+    /////////////////////////////
+
+    let ant_constraints: Vec<Constraint> = ant_sim
+        .ants
+        .iter()
+        .map(|_| Constraint::Length(2 + 3))
+        .collect();
+    let ant_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(ant_constraints)
+        .split(vertical_chunks[2]);
+
     for (i, ant) in ant_sim.ants.iter().enumerate() {
-        lines.push(Line::from(format!(
-            "Ant {}: x{} y{}",
-            i,
+        let ant_widget = Paragraph::new(format!(
+            "x: {}\ny: {}\n Direction: {}",
             match ant.x {
                 usize::MAX => "Center",
                 _ => "0",
@@ -336,10 +366,41 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             match ant.y {
                 usize::MAX => "Center",
                 _ => "0",
-            }
-        )));
+            },
+            ant.direction
+        ))
+        .alignment(Alignment::Center)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .title(format!(" Ant {} ", i)),
+        )
+        .style(if ant_sim.edit_item_selected == i + 1 {
+            selected_style
+        } else {
+            not_selected_style
+        });
+
+        scroll_view.render_widget(ant_widget, ant_chunks[i]);
     }
-    scroll_view.render_widget(Paragraph::new(lines), vertical_chunks[2]);
 
     frame.render_stateful_widget(scroll_view, scroll_area, &mut ant_sim.scroll_state);
+
+    /////////////////////////////
+    // Help screen
+    /////////////////////////////
+
+    let help_entries: Vec<(Line, Line)> = vec![
+        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
+        (Line::from("?".yellow()), Line::from("Help")),
+        (Line::from("Space".yellow()), Line::from("Start simulation")),
+        (Line::from("Enter".yellow()), Line::from("Edit item")),
+        (Line::from("K / ↑".yellow()), Line::from("Select previous")),
+        (Line::from("J / ↓".yellow()), Line::from("Select next")),
+    ];
+
+    if app.help_screen {
+        render_help(frame, help_entries);
+    }
 }
