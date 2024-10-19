@@ -374,13 +374,14 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     /////////////////////////////
     // Selection
     /////////////////////////////
-    if ant_sim.scroll_state.offset().y < 10 {
+    if ant_sim.scroll_state.offset().y + scroll_area.y / 2 < 10 {
         ant_sim.edit_item_selected = 0;
-    } else if usize::from(ant_sim.scroll_state.offset().y) < ant_sim.ants.len() * 5 + 10 {
-        ant_sim.edit_item_selected = usize::from(ant_sim.scroll_state.offset().y.saturating_sub(13) / 5 + 1);
-    } else if usize::from(ant_sim.scroll_state.offset().y) < ant_sim.ants.len() * 5 + 15 {
+    } else if usize::from(ant_sim.scroll_state.offset().y + scroll_area.y / 2) < ant_sim.ants.len() * 5 + 10 {
+        ant_sim.edit_item_selected =
+            usize::from(ant_sim.scroll_state.offset().y.saturating_sub(13) / 5 + 1);
+    } else if usize::from(ant_sim.scroll_state.offset().y + scroll_area.y / 2) < ant_sim.ants.len() * 5 + 15 {
         ant_sim.edit_item_selected = ant_sim.ants.len() + 1;
-    } else if usize::from(ant_sim.scroll_state.offset().y) < ant_sim.ants.len() * 5 + 20 {
+    } else if usize::from(ant_sim.scroll_state.offset().y + scroll_area.y / 2) < ant_sim.ants.len() * 5 + 19 {
         ant_sim.edit_item_selected = ant_sim.ants.len() + 2;
     }
 
@@ -493,10 +494,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     scroll_view.render_widget(confirm, confirm_chunk[1]);
 
     frame.render_stateful_widget(scroll_view, scroll_area, &mut ant_sim.scroll_state);
-    frame.render_widget(
-        edit_block,
-        edit_area,
-    );
+    frame.render_widget(edit_block, edit_area);
 
     /////////////////////////////
     // Help screen
