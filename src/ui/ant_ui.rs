@@ -25,7 +25,7 @@ use crate::{
     app::{App, InputMode},
     simulations::{
         self,
-        ant::{Ant, AntSim},
+        ant::{self, Ant, AntSim},
     },
 };
 
@@ -250,8 +250,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 pub fn edit(frame: &mut Frame, app: &mut App) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
 
-    let selected_style = Style::default().bold();
-    let not_selected_style = Style::default().gray();
+    let selected_style = Style::default().yellow().bold();
+    let not_selected_style = Style::default();
 
     /////////////////////////////
     // Centered popup
@@ -349,12 +349,13 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     scroll_view.render_widget(input_paragraph, input_paragraph_chunk[0]);
     scroll_view.render_widget(input, vertical_chunks[1]);
 
+    let input_position_y =
+        (input_paragraph_chunk[0].y + 8).saturating_sub(ant_sim.scroll_state.offset().y);
     match ant_sim.rules_input_mode {
         InputMode::Normal => {}
         InputMode::Editing => {
             // Make the cursor visible and put it at the specified coordinates after rendering
-            if (input_paragraph_chunk[0].y + 8).saturating_sub(ant_sim.scroll_state.offset().y) > 0 &&
-             (input_paragraph_chunk[0].y + 8).saturating_sub(ant_sim.scroll_state.offset().y) <= scroll_area.height {
+            if input_position_y > 0 && input_position_y <= scroll_area.height {
                 frame.set_cursor_position((
                     // Put cursor past the end of the input text
                     vertical_chunks[1].x
@@ -371,9 +372,21 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     }
 
     /////////////////////////////
+    // Selection
+    /////////////////////////////
+    if ant_sim.scroll_state.offset().y < 10 {
+        ant_sim.edit_item_selected = 0;
+    } else if usize::from(ant_sim.scroll_state.offset().y) < ant_sim.ants.len() * 5 + 10 {
+        ant_sim.edit_item_selected = usize::from(ant_sim.scroll_state.offset().y.saturating_sub(13) / 5 + 1);
+    } else if usize::from(ant_sim.scroll_state.offset().y) < ant_sim.ants.len() * 5 + 15 {
+        ant_sim.edit_item_selected = ant_sim.ants.len() + 1;
+    } else if usize::from(ant_sim.scroll_state.offset().y) < ant_sim.ants.len() * 5 + 20 {
+        ant_sim.edit_item_selected = ant_sim.ants.len() + 2;
+    }
+
+    /////////////////////////////
     // Ants list
     /////////////////////////////
-
     let ants_paragraph_chunk = Layout::default()
         .direction(Direction::Horizontal)
         .horizontal_margin(horizontal_margin)
@@ -480,14 +493,10 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     scroll_view.render_widget(confirm, confirm_chunk[1]);
 
     frame.render_stateful_widget(scroll_view, scroll_area, &mut ant_sim.scroll_state);
-    frame.render_widget(edit_block, edit_area);
-
-    /////////////////////////////
-    // Selection
-    /////////////////////////////
-    if ant_sim.scroll_state.offset().y == 4 {
-        ant_sim.edit_item_selected = 0;
-    }
+    frame.render_widget(
+        edit_block,
+        edit_area,
+    );
 
     /////////////////////////////
     // Help screen

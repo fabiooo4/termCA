@@ -133,8 +133,11 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                 }
 
                 KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
-                    for _ in 0..scroll_factor {
-                        ant_sim.scroll_state.scroll_down();
+                    // If not on the last button scroll down
+                    if ant_sim.edit_item_selected < ant_sim.ants.len() + 2 {
+                        for _ in 0..scroll_factor {
+                            ant_sim.scroll_state.scroll_down();
+                        }
                     }
                 }
 
