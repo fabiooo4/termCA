@@ -69,14 +69,7 @@ pub fn main(key: KeyEvent, app: &mut App) {
 
 pub fn edit(key: KeyEvent, app: &mut App) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
-    let scroll_factor =
-        if ant_sim.edit_item_selected > 0 && ant_sim.edit_item_selected < ant_sim.ants.len() + 1 {
-            5
-        } else if ant_sim.edit_item_selected == 0 {
-            0
-        } else {
-            0
-        };
+    let scroll_factor = 5;
     match ant_sim.rules_input_mode {
         InputMode::Normal => {
             match key.code {

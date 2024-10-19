@@ -4,6 +4,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect, Size},
     style::Modifier,
     text::Span,
+    widgets::Wrap,
     Frame,
 };
 
@@ -28,7 +29,7 @@ use crate::{
     },
 };
 
-use super::{centered_rect_length, render_help};
+use super::{centered_rect_length, centered_rect_percent, render_help};
 
 pub fn ant_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -249,16 +250,16 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 pub fn edit(frame: &mut Frame, app: &mut App) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
 
-    let edit_area_width = 28;
-    let edit_area_height = 15;
-
     let selected_style = Style::default().bold();
     let not_selected_style = Style::default().gray();
 
     /////////////////////////////
     // Centered popup
     /////////////////////////////
-    let edit_area = centered_rect_length(edit_area_width, edit_area_height, frame.area());
+    // let edit_area = centered_rect_length(edit_area_width, edit_area_height, frame.area());
+    let edit_area = centered_rect_percent(35, 60, frame.area());
+    let edit_area_width = edit_area.width;
+    let edit_area_height = edit_area.height;
 
     // Area with offsets for the border
     let scroll_area = Rect::new(
@@ -269,8 +270,8 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     );
 
     let mut scroll_view = ScrollView::new(Size::new(
-        edit_area_width - 2,
-        (edit_area_height - 2) + (ant_sim.ants.len().saturating_sub(1) as u16) * 5 + 3,
+        scroll_area.width - 1,
+        scroll_area.height + 7 + 3 + 4 + 5 + (ant_sim.ants.len().saturating_sub(1) as u16) * 5 + 3,
     ));
 
     let edit_block = Block::default()
@@ -280,15 +281,16 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         .border_type(BorderType::Rounded);
 
     frame.render_widget(Clear, edit_area);
-    frame.render_widget(edit_block, edit_area);
 
     let horizontal_margin = 1;
     let vertical_chunks = Layout::default()
         .direction(Direction::Vertical)
         .horizontal_margin(horizontal_margin)
         .constraints([
+            Constraint::Length(7),
             Constraint::Length(3),
             Constraint::Length(1),
+            Constraint::Length(4),
             Constraint::Max(ant_sim.ants.len() as u16 * 5),
             Constraint::Length(3),
             Constraint::Length(1),
@@ -299,6 +301,23 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     /////////////////////////////
     // Ruleset input
     /////////////////////////////
+
+    let input_paragraph_chunk = Layout::default()
+        .direction(Direction::Horizontal)
+        .horizontal_margin(horizontal_margin)
+        .vertical_margin(1)
+        .constraints([Constraint::Fill(1)])
+        .split(vertical_chunks[0]);
+
+    let input_paragraph = Paragraph::new(vec![
+        Line::from("Possible rules:"),
+        Line::from("R: Turn right"),
+        Line::from("L: Turn left"),
+        Line::from("F: Continue forward"),
+        Line::from("B: Opposite direction"),
+    ])
+    .style(Style::default().dim());
+
     let input_scroll = ant_sim
         .rules_input
         .visual_scroll(scroll_view.area().width.saturating_sub(5) as usize);
@@ -316,7 +335,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                         .bold()
                         .remove_modifier(Modifier::REVERSED),
                 })
-                .title(" Input "),
+                .title(" Ruleset "),
         )
         .style(if ant_sim.edit_item_selected == 0 {
             match ant_sim.rules_input_mode {
@@ -327,22 +346,24 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             not_selected_style
         });
 
-    scroll_view.render_widget(input, vertical_chunks[0]);
+    scroll_view.render_widget(input_paragraph, input_paragraph_chunk[0]);
+    scroll_view.render_widget(input, vertical_chunks[1]);
 
     match ant_sim.rules_input_mode {
         InputMode::Normal => {}
         InputMode::Editing => {
-            // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
-            if ant_sim.scroll_state.offset().y < 2 {
+            // Make the cursor visible and put it at the specified coordinates after rendering
+            if ant_sim.scroll_state.offset().y < 7 {
                 frame.set_cursor_position((
                     // Put cursor past the end of the input text
-                    scroll_area.x
+                    vertical_chunks[1].x
+                        + edit_area.x
                         + ((ant_sim.rules_input.visual_cursor()).saturating_sub(input_scroll))
                             as u16
                         + horizontal_margin * 2,
                     // Move one line down, from the border to the input line
                     // and offset relative to scroll
-                    scroll_area.y + 1 - ant_sim.scroll_state.offset().y,
+                    vertical_chunks[1].y + edit_area.y + 2 - ant_sim.scroll_state.offset().y,
                 ))
             }
         }
@@ -352,6 +373,18 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     // Ants list
     /////////////////////////////
 
+    let ants_paragraph_chunk = Layout::default()
+        .direction(Direction::Horizontal)
+        .horizontal_margin(horizontal_margin)
+        .vertical_margin(1)
+        .constraints([Constraint::Fill(1)])
+        .split(vertical_chunks[3]);
+
+    let ants_paragraph = Paragraph::new(vec![Line::from(
+        "Press enter on any ant to edit its position and its direction.",
+    )])
+    .style(Style::default().dim()).wrap(Wrap {trim:true});
+
     let ant_constraints: Vec<Constraint> = ant_sim
         .ants
         .iter()
@@ -360,7 +393,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     let ant_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(ant_constraints)
-        .split(vertical_chunks[2]);
+        .split(vertical_chunks[4]);
 
     for (i, ant) in ant_sim.ants.iter().enumerate() {
         let ant_widget = Paragraph::new(format!(
@@ -390,6 +423,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
 
         scroll_view.render_widget(ant_widget, ant_chunks[i]);
     }
+    scroll_view.render_widget(ants_paragraph, ants_paragraph_chunk[0]);
 
     /////////////////////////////
     // Add ant button
@@ -414,7 +448,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             Constraint::Length(2 + 7),
             Constraint::Fill(1),
         ])
-        .split(vertical_chunks[3]);
+        .split(vertical_chunks[5]);
     scroll_view.render_widget(add, add_chunk[1]);
 
     /////////////////////////////
@@ -440,10 +474,11 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             Constraint::Length(18),
             Constraint::Fill(1),
         ])
-        .split(vertical_chunks[5]);
+        .split(vertical_chunks[7]);
     scroll_view.render_widget(confirm, confirm_chunk[1]);
 
     frame.render_stateful_widget(scroll_view, scroll_area, &mut ant_sim.scroll_state);
+    frame.render_widget(edit_block, edit_area);
 
     /////////////////////////////
     // Help screen
