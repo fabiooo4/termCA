@@ -353,7 +353,8 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         InputMode::Normal => {}
         InputMode::Editing => {
             // Make the cursor visible and put it at the specified coordinates after rendering
-            if ant_sim.scroll_state.offset().y < 7 {
+            if (input_paragraph_chunk[0].y + 8).saturating_sub(ant_sim.scroll_state.offset().y) > 0 &&
+             (input_paragraph_chunk[0].y + 8).saturating_sub(ant_sim.scroll_state.offset().y) <= scroll_area.height {
                 frame.set_cursor_position((
                     // Put cursor past the end of the input text
                     vertical_chunks[1].x
@@ -383,7 +384,8 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     let ants_paragraph = Paragraph::new(vec![Line::from(
         "Press enter on any ant to edit its position and its direction.",
     )])
-    .style(Style::default().dim()).wrap(Wrap {trim:true});
+    .style(Style::default().dim())
+    .wrap(Wrap { trim: true });
 
     let ant_constraints: Vec<Constraint> = ant_sim
         .ants
@@ -479,6 +481,13 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
 
     frame.render_stateful_widget(scroll_view, scroll_area, &mut ant_sim.scroll_state);
     frame.render_widget(edit_block, edit_area);
+
+    /////////////////////////////
+    // Selection
+    /////////////////////////////
+    if ant_sim.scroll_state.offset().y == 4 {
+        ant_sim.edit_item_selected = 0;
+    }
 
     /////////////////////////////
     // Help screen

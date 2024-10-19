@@ -69,7 +69,7 @@ pub fn main(key: KeyEvent, app: &mut App) {
 
 pub fn edit(key: KeyEvent, app: &mut App) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
-    let scroll_factor = 5;
+    let scroll_factor = 2;
     match ant_sim.rules_input_mode {
         InputMode::Normal => {
             match key.code {
@@ -136,16 +136,12 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                     for _ in 0..scroll_factor {
                         ant_sim.scroll_state.scroll_down();
                     }
-                    if ant_sim.edit_item_selected < 2 + ant_sim.ants.len() {
-                        ant_sim.edit_item_selected = ant_sim.edit_item_selected.saturating_add(1);
-                    }
                 }
 
                 KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => {
-                        for _ in 0..scroll_factor {
-                            ant_sim.scroll_state.scroll_up();
-                        }
-                    ant_sim.edit_item_selected = ant_sim.edit_item_selected.saturating_sub(1);
+                    for _ in 0..scroll_factor {
+                        ant_sim.scroll_state.scroll_up();
+                    }
                 }
 
                 _ => {}
