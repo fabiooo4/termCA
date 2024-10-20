@@ -375,13 +375,17 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     // Selection
     /////////////////////////////
     if ant_sim.scroll_state.offset().y + scroll_area.y / 2 < 10 {
+        // Select input
         ant_sim.edit_item_selected = 0;
     } else if usize::from(ant_sim.scroll_state.offset().y + scroll_area.y / 2) < ant_sim.ants.len() * 5 + 10 {
+        // Select ants
         ant_sim.edit_item_selected =
             usize::from(ant_sim.scroll_state.offset().y.saturating_sub(13) / 5 + 1);
     } else if usize::from(ant_sim.scroll_state.offset().y + scroll_area.y / 2) < ant_sim.ants.len() * 5 + 15 {
+        // Select "Add ants" button
         ant_sim.edit_item_selected = ant_sim.ants.len() + 1;
     } else if usize::from(ant_sim.scroll_state.offset().y + scroll_area.y / 2) < ant_sim.ants.len() * 5 + 19 {
+        // Select "Start simulation"
         ant_sim.edit_item_selected = ant_sim.ants.len() + 2;
     }
 
