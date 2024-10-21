@@ -3,7 +3,7 @@ use ratatui::{
     text::Line,
     widgets::{
         block::{Position, Title},
-        Clear, List, ListDirection, ListItem,
+        Clear, List, ListDirection, ListItem, ListState,
     },
     Frame,
 };
@@ -119,10 +119,15 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .alignment(Alignment::Center)
         .build();
 
-    let subtitle = Paragraph::new("Cellular Automata")
-        .alignment(Alignment::Center)
-        .white()
-        .bold();
+    let subtitle = Paragraph::new(
+        "Cellular Automata".to_string()
+            + &app.sim_list_state.offset().to_string()
+            + " "
+            + &app.edit_list_state.offset().to_string(),
+    )
+    .alignment(Alignment::Center)
+    .white()
+    .bold();
 
     frame.render_widget(title, vertical_layout[1]);
     frame.render_widget(subtitle, vertical_layout[2]);
@@ -143,10 +148,10 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .collect();
 
     let mut settings_items: Vec<ListItem> =
-        vec![ListItem::from(vec!["Edit".into(), "".into()]); app.simulation_items.len() - 1];
+        app.edit_items.iter().map(|item| item.clone()).collect();
 
     // Highlight added to the selected row, but on the column that is not selected
-    let partial_highlight = Style::default().white().bold();
+    let partial_highlight = Style::default().white().bold().not_dim();
 
     if let Some(idx) = app.edit_list_state.selected() {
         sim_items[idx] = sim_items[idx].clone().style(partial_highlight);
@@ -159,14 +164,15 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     }
 
     let sim_list = List::new(sim_items)
-        .style(Style::default().white())
-        .highlight_style(Style::default().yellow().bold())
+        .style(Style::default().white().dim())
+        .highlight_style(Style::default().yellow().bold().not_dim())
         .direction(ListDirection::TopToBottom);
 
     let settings_list = List::new(settings_items)
-        .style(Style::default().white())
-        .highlight_style(Style::default().yellow().bold())
+        .style(Style::default().white().dim())
+        .highlight_style(Style::default().yellow().bold().not_dim())
         .direction(ListDirection::TopToBottom);
+
 
     frame.render_stateful_widget(sim_list, list_layout[1], &mut app.sim_list_state);
     frame.render_stateful_widget(settings_list, list_layout[2], &mut app.edit_list_state);
@@ -197,7 +203,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     if let Some(edit_sim) = app.editing {
         match edit_sim {
             Screen::Ant => ant_ui::edit(frame, app),
-            Screen::AntEdit(ant_idx)=> ant_ui::edit_ant(frame, app, ant_idx),
+            Screen::AntEdit(ant_idx) => ant_ui::edit_ant(frame, app, ant_idx),
             _ => {}
         }
     }

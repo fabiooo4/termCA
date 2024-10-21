@@ -1,7 +1,7 @@
 use crate::simulations::ant::AntSim;
 use ratatui::{
     symbols::Marker,
-    widgets::{ListItem, ListState},
+    widgets::{List, ListItem, ListState},
 };
 use std::time::Duration;
 
@@ -16,7 +16,7 @@ pub enum Screen {
 
 pub enum InputMode {
     Normal,
-    Editing
+    Editing,
 }
 
 pub struct SimulationItem<'a> {
@@ -34,6 +34,7 @@ pub struct App<'a> {
     pub speed_multiplier: usize, // Number of generations per frame
     pub marker: Marker,          // Character to draw the cells
     pub simulation_items: Vec<SimulationItem<'a>>,
+    pub edit_items: Vec<ListItem<'a>>,
     pub sim_list_state: ListState, // State of the list of CAs
     pub edit_list_state: ListState,
 
@@ -45,6 +46,25 @@ pub struct App<'a> {
 impl App<'_> {
     /// Constructs a new `App` with default values
     pub fn new() -> Self {
+        let simulations_list = vec![
+            SimulationItem {
+                item: ListItem::from(vec!["Langton's Ant".into(), "".into()]),
+                screen: Screen::Ant,
+            },
+            SimulationItem {
+                item: ListItem::from(vec!["Simulazione 2".into(), "".into()]),
+                screen: Screen::Ant,
+            },
+            SimulationItem {
+                item: ListItem::from(vec!["Exit".into()]),
+                screen: Screen::Exit,
+            },
+        ];
+
+        let mut edit_list =
+            vec![ListItem::from(vec!["Edit".into(), "".into()]); simulations_list.len() - 1];
+        edit_list.push(ListItem::from(vec!["".into(), "".into()]));
+
         App {
             help_screen: false,
             current_screen: Screen::Main,
@@ -53,16 +73,8 @@ impl App<'_> {
             speed: Duration::from_millis(80),
             speed_multiplier: 1,
             marker: Marker::HalfBlock,
-            simulation_items: vec![
-                SimulationItem {
-                    item: ListItem::from(vec!["Langton's Ant".into(), "".into()]),
-                    screen: Screen::Ant,
-                },
-                SimulationItem {
-                    item: ListItem::from(vec!["Exit".into()]),
-                    screen: Screen::Exit,
-                },
-            ],
+            simulation_items: simulations_list,
+            edit_items: edit_list,
             sim_list_state: ListState::default().with_selected(Some(0)),
             edit_list_state: ListState::default(),
 
@@ -91,6 +103,81 @@ impl App<'_> {
 
         if let Some(i) = self.edit_list_state.selected() {
             self.current_screen = self.simulation_items[i].screen
+        }
+    }
+
+    // List handling
+    pub fn select_first(&mut self) {
+        if self.sim_list_state.selected().is_some() {
+            self.sim_list_state.select_first();
+        } else {
+            self.edit_list_state.select_first();
+        }
+    }
+
+    pub fn select_last(&mut self) {
+        if self.sim_list_state.selected().is_some() {
+            self.sim_list_state.select_last();
+        } else {
+            if self.edit_list_state.selected() == Some(self.simulation_items.len() - 1) {
+                self.edit_list_state.select_last();
+            }
+        }
+    }
+
+    pub fn select_next(&mut self) {
+        if self.sim_list_state.selected().is_some()
+            && self.sim_list_state.selected() != Some(self.simulation_items.len() - 1)
+        {
+            self.sim_list_state.select_next();
+        }
+
+        if self.edit_list_state.selected().is_some()
+            && self.edit_list_state.selected() != Some(self.edit_items.len() - 2)
+        {
+            self.edit_list_state.select_next();
+        } else if self.edit_list_state.selected().is_some()
+            && self.edit_list_state.selected() != Some(self.edit_items.len() - 1)
+        {
+            self.sim_list_state.select_last();
+        }
+    }
+
+    pub fn select_previous(&mut self) {
+        if self.sim_list_state.selected().is_some() && self.sim_list_state.selected() != Some(0) {
+            self.sim_list_state.select_previous();
+        }
+
+        if self.edit_list_state.selected().is_some() && self.edit_list_state.selected() != Some(0) {
+            self.edit_list_state.select_previous();
+        }
+    }
+
+    pub fn select_left(&mut self) {
+        if self.edit_list_state.selected().is_some() {
+            self.sim_list_state.select(self.edit_list_state.selected());
+            self.edit_list_state.select(None);
+            self.sync_lists();
+        }
+    }
+
+    pub fn select_right(&mut self) {
+        if self.sim_list_state.selected().is_some()
+            && self.sim_list_state.selected() != Some(self.simulation_items.len() - 1)
+        {
+            self.edit_list_state.select(self.sim_list_state.selected());
+            self.sim_list_state.select(None);
+            self.sync_lists();
+        }
+    }
+
+    pub fn sync_lists(&mut self) {
+        if self.sim_list_state.selected().is_some() {
+            self.edit_list_state = ListState::default().with_offset(self.sim_list_state.offset());
+        }
+
+        if self.edit_list_state.selected().is_some() {
+            self.sim_list_state = ListState::default().with_offset(self.edit_list_state.offset());
         }
     }
 }

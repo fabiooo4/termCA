@@ -32,6 +32,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
         // Always running
         match app.current_screen {
             Screen::Exit => break Ok(()),
+            Screen::Main => app.sync_lists(),
             Screen::Ant => {
                 if app.is_running && !app.help_screen {
                     // Run Langton's Ant
