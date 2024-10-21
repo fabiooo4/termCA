@@ -710,6 +710,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         (Line::from("J / ↓".yellow()), Line::from("Move down")),
         (Line::from("L / →".yellow()), Line::from("Move right")),
         (Line::from("H / ←".yellow()), Line::from("Move left")),
+        (Line::from("r".yellow()), Line::from("Rotate left")),
+        (Line::from("R".yellow()), Line::from("Rotate right")),
     ];
 
     if app.help_screen {

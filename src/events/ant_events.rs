@@ -186,7 +186,11 @@ pub fn edit_ant(key: KeyEvent, app: &mut App, ant_idx: usize) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
 
     match key.code {
-        KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => {
+        KeyCode::Char('?') => {
+            app.help_screen = !app.help_screen;
+        }
+
+        KeyCode::Enter | KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => {
             app.editing = Some(Screen::Ant);
         }
 
