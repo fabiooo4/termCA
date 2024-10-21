@@ -10,6 +10,7 @@ use std::time::Duration;
 pub enum Screen {
     Main,
     Ant,
+    AntEdit(usize), // Screen for editing the ants' position and direction
     Exit,
 }
 

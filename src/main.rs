@@ -67,6 +67,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                 if let Some(edit_sim) = app.editing {
                     match edit_sim {
                         Screen::Ant => ant_events::edit(key, app),
+                        Screen::AntEdit(ant_idx) => ant_events::edit_ant(key, app, ant_idx),
                         _ => {}
                     }
                 } else {

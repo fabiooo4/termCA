@@ -129,6 +129,9 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                         // Change the screen
                         app.editing = None;
                         app.current_screen = Screen::Ant;
+                    } else {
+                        // Ant edit mode
+                        app.editing = Some(Screen::AntEdit(ant_sim.edit_item_selected - 1));
                     }
                 }
 
@@ -176,6 +179,41 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                     }));
             }
         },
+    }
+}
+
+pub fn edit_ant(key: KeyEvent, app: &mut App, ant_idx: usize) {
+    let ant_sim = app.ant_sim.as_mut().unwrap();
+
+    match key.code {
+        KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => {
+            app.editing = Some(Screen::Ant);
+        }
+
+        KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => {
+            ant_sim.ants[ant_idx].y = ant_sim.ants[ant_idx].y.saturating_add(1);
+        }
+
+        KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
+            ant_sim.ants[ant_idx].y = ant_sim.ants[ant_idx].y.saturating_sub(1);
+        }
+
+        KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
+            ant_sim.ants[ant_idx].x = ant_sim.ants[ant_idx].x.saturating_add(1);
+        }
+
+        KeyCode::Left | KeyCode::Char('h') | KeyCode::Char('H') => {
+            ant_sim.ants[ant_idx].x = ant_sim.ants[ant_idx].x.saturating_sub(1);
+        }
+
+        KeyCode::Char('r') => {
+            ant_sim.ants[ant_idx].direction = ant_sim.ants[ant_idx].direction.turn_right();
+        }
+
+        KeyCode::Char('R') => {
+            ant_sim.ants[ant_idx].direction = ant_sim.ants[ant_idx].direction.turn_left();
+        }
+        _ => {}
     }
 }
 

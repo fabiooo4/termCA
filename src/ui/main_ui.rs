@@ -197,6 +197,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     if let Some(edit_sim) = app.editing {
         match edit_sim {
             Screen::Ant => ant_ui::edit(frame, app),
+            Screen::AntEdit(ant_idx)=> ant_ui::edit_ant(frame, app, ant_idx),
             _ => {}
         }
     }
