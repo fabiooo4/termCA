@@ -422,31 +422,49 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         .constraints(ant_constraints)
         .split(vertical_chunks[4]);
 
+    let right_style = Style::default().bold().yellow();
+    let left_style = Style::default().bold().red();
+    let up_style = Style::default().bold().blue();
+    let down_style = Style::default().bold().green();
+
     for (i, ant) in ant_sim.ants.iter().enumerate() {
-        let ant_widget = Paragraph::new(format!(
-            "x: {}\ny: {}\n Direction: {}",
-            match ant.x {
-                usize::MAX => "Center".to_string(),
-                _ => {
-                    if ant.x == ant_sim.grid.width() / 2 {
-                        "Center".to_string()
-                    } else {
-                        ant.x.to_string()
+        let ant_widget = Paragraph::new(vec![
+            Line::from(format!(
+                "x: {}",
+                match ant.x {
+                    usize::MAX => "Center".to_string(),
+                    _ => {
+                        if ant.x == ant_sim.grid.width() / 2 {
+                            "Center".to_string()
+                        } else {
+                            ant.x.to_string()
+                        }
                     }
-                }
-            },
-            match ant.y {
-                usize::MAX => "Center".to_string(),
-                _ => {
-                    if ant.y == ant_sim.grid.height() / 2 {
-                        "Center".to_string()
-                    } else {
-                        ant.y.to_string()
+                },
+            )),
+            Line::from(format!(
+                "y: {}",
+                match ant.y {
+                    usize::MAX => "Center".to_string(),
+                    _ => {
+                        if ant.y == ant_sim.grid.height() / 2 {
+                            "Center".to_string()
+                        } else {
+                            ant.y.to_string()
+                        }
                     }
-                }
-            },
-            ant.direction
-        ))
+                },
+            )),
+            Line::from(vec![
+                "Direction: ".into(),
+                Span::from(ant.direction.to_string()).style(match ant.direction {
+                    crate::simulations::Direction::Right => right_style,
+                    crate::simulations::Direction::Left => left_style,
+                    crate::simulations::Direction::Up => up_style,
+                    crate::simulations::Direction::Down => down_style,
+                }),
+            ]),
+        ])
         .alignment(Alignment::Center)
         .block(
             Block::default()
@@ -601,57 +619,47 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Border content
     /////////////////////////////
 
-    let top_title = Title::from(Line::from(vec![" Langton's Ant ".yellow()]))
-        .position(Position::Top)
-        .alignment(Alignment::Center);
+    let top_title = Title::from(Line::from(vec![format!(
+        " Editing Ant {} position ",
+        ant_idx
+    )
+    .yellow()]))
+    .position(Position::Top)
+    .alignment(Alignment::Center);
+
+    let right_style = Style::default().bold().yellow();
+    let left_style = Style::default().bold().red();
+    let up_style = Style::default().bold().blue();
+    let down_style = Style::default().bold().green();
 
     let bottom_left_title = Title::from(Line::from(vec![
-        " Iteration: ".into(),
-        ant_sim.generation.to_string().yellow(),
+        " Direction: ".into(),
+        Span::from(ant_sim.ants[ant_idx].direction.to_string()).style(
+            match ant_sim.ants[ant_idx].direction {
+                crate::simulations::Direction::Right => right_style,
+                crate::simulations::Direction::Left => left_style,
+                crate::simulations::Direction::Up => up_style,
+                crate::simulations::Direction::Down => down_style,
+            },
+        ),
         " ".into(),
     ]))
     .position(Position::Bottom);
 
-    let key_help = Title::from(Line::from(vec![" '?' ".yellow(), "Help ".into()]))
+    let help_label = Title::from(Line::from(vec![" '?' ".yellow(), "Help ".into()]))
         .position(Position::Bottom)
         .alignment(Alignment::Center);
 
     let bottom_right_title = Title::from(Line::from(vec![
-        " Speed: ".into(),
-        if app.speed.as_millis() == 0 {
-            format!("{}x ", app.speed_multiplier).yellow()
-        } else {
-            format!("{}ms ", app.speed.as_millis()).yellow()
-        },
+        " Position: ".into(),
+        format!(
+            "(x: {}, y: {}) ",
+            ant_sim.ants[ant_idx].x, ant_sim.ants[ant_idx].y
+        )
+        .into(),
     ]))
     .position(Position::Bottom)
     .alignment(Alignment::Right);
-
-    /* let top_left_debug = Title::from(Line::from(vec![
-        "(".into(),
-        ant_sim.ants[0].x.to_string().yellow(),
-        "/".into(),
-        ant_sim.grid.width().to_string().red(),
-        ",".into(),
-        ant_sim.ants[0].y.to_string().yellow(),
-        "/".into(),
-        ant_sim.grid.height().to_string().red(),
-        ")".into(),
-        " ".into(),
-        ant_sim.ants[0].direction.to_string().yellow(),
-        " ".into(),
-        ratatui::text::Span::styled(
-            ant_sim.grid.cells[ant_sim.ants[0].y][ant_sim.ants[0].x].to_string(),
-            Style::default().fg(ant_sim.grid.cells[ant_sim.ants[0].y][ant_sim.ants[0].x]),
-        ),
-        " ".into(),
-        "[".into(),
-        width.to_string().red(),
-        ",".into(),
-        height.to_string().red(),
-        "]".into(),
-        " ".into(),
-    ])); */
 
     /////////////////////////////
     // Simulation canvas
@@ -662,11 +670,10 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Block::default()
                 .border_type(BorderType::Double)
                 .borders(Borders::ALL)
-                // .title(top_left_debug)
                 .title(top_title)
                 .title(bottom_left_title)
                 .title(bottom_right_title)
-                .title(key_help)
+                .title(help_label)
                 .title_style(Style::default().bold()),
         )
         .marker(app.marker)
@@ -675,10 +682,11 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             for (i, ant) in ant_sim.ants.iter().enumerate() {
                 ctx.draw(&Points {
                     coords: &[(ant.x as f64, ant.y as f64)],
-                    color: if i == ant_idx {
-                        Color::Yellow
-                    } else {
-                        ant.color
+                    color: match ant_sim.ants[i].direction {
+                        crate::simulations::Direction::Right => Color::Yellow,
+                        crate::simulations::Direction::Left => Color::Red,
+                        crate::simulations::Direction::Up => Color::Blue,
+                        crate::simulations::Direction::Down => Color::Green,
                     },
                 });
             }
@@ -693,12 +701,15 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     /////////////////////////////
 
     let help_entries: Vec<(Line, Line)> = vec![
-        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
+        (
+            Line::from("Q / Esc / Enter".yellow()),
+            Line::from("Save position"),
+        ),
         (Line::from("?".yellow()), Line::from("Help")),
-        (Line::from("Space".yellow()), Line::from("Start/Pause")),
-        (Line::from("K / ↑".yellow()), Line::from("Speed Up")),
-        (Line::from("J / ↓".yellow()), Line::from("Speed Down")),
-        (Line::from("L / →".yellow()), Line::from("Next Generation")),
+        (Line::from("K / ↑".yellow()), Line::from("Move up")),
+        (Line::from("J / ↓".yellow()), Line::from("Move down")),
+        (Line::from("L / →".yellow()), Line::from("Move right")),
+        (Line::from("H / ←".yellow()), Line::from("Move left")),
     ];
 
     if app.help_screen {
