@@ -78,7 +78,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         let ant_sim = app.ant_sim.as_mut().unwrap();
 
         // Initialize the grid with the same size as the canvas
-        ant_sim.grid.cells = vec![vec![ant_sim.states[0]; width as usize]; height as usize];
+        ant_sim.grid.resize(width as usize, height as usize, ant_sim.states[0]);
 
         // Change default ruleset
         ant_sim.rules = AntSim::parse_ant_ruleset("RRLLLRLLLLLLLLL");
@@ -109,7 +109,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         let ant_sim = app.ant_sim.as_mut().unwrap();
 
         // Initialize the grid with the same size as the canvas
-        ant_sim.grid.cells = vec![vec![ant_sim.states[0]; width as usize]; height as usize];
+        ant_sim.grid.resize(width as usize, height as usize, ant_sim.states[0]);
 
         // Reposition the ant inside the bounds if it is outside
         for ant in ant_sim.ants.iter_mut() {
@@ -600,9 +600,9 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     let ant_sim = app.ant_sim.as_mut().unwrap();
 
     // Initialize the grid with the same size as the canvas
-    ant_sim.grid.cells = vec![vec![ant_sim.states[0]; width as usize]; height as usize];
+    ant_sim.grid.resize(width as usize, height as usize, ant_sim.states[0]);
 
-    // Reposition the ant inside the bounds if it is outside
+    // Wrap ant position
     for ant in ant_sim.ants.iter_mut() {
         if ant.x > width as usize {
             ant.x = width as usize / 2;

@@ -6,7 +6,10 @@ use tui_input::{backend::crossterm::EventHandler, InputRequest};
 
 use crate::{
     app::{App, InputMode, Screen},
-    simulations::ant::{Ant, AntSim},
+    simulations::{
+        ant::{Ant, AntSim},
+        Direction,
+    },
 };
 
 pub fn main(key: KeyEvent, app: &mut App) {
@@ -187,35 +190,35 @@ pub fn edit_ant(key: KeyEvent, app: &mut App, ant_idx: usize) {
 
     match key.code {
         KeyCode::Char('?') => {
-            app.help_screen = !app.help_screen;
+            app.help_screen = !app.help_screen
         }
 
         KeyCode::Enter | KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => {
-            app.editing = Some(Screen::Ant);
+            app.editing = Some(Screen::Ant)
         }
 
         KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => {
-            ant_sim.ants[ant_idx].y = ant_sim.ants[ant_idx].y.saturating_add(1);
+            ant_sim.ants[ant_idx].change_position(Direction::Up, &ant_sim.grid)
         }
 
         KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
-            ant_sim.ants[ant_idx].y = ant_sim.ants[ant_idx].y.saturating_sub(1);
+            ant_sim.ants[ant_idx].change_position(Direction::Down, &ant_sim.grid)
         }
 
         KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
-            ant_sim.ants[ant_idx].x = ant_sim.ants[ant_idx].x.saturating_add(1);
+            ant_sim.ants[ant_idx].change_position(Direction::Right, &ant_sim.grid)
         }
 
         KeyCode::Left | KeyCode::Char('h') | KeyCode::Char('H') => {
-            ant_sim.ants[ant_idx].x = ant_sim.ants[ant_idx].x.saturating_sub(1);
+            ant_sim.ants[ant_idx].change_position(Direction::Left, &ant_sim.grid)
         }
 
         KeyCode::Char('r') => {
-            ant_sim.ants[ant_idx].direction = ant_sim.ants[ant_idx].direction.turn_right();
+            ant_sim.ants[ant_idx].direction = ant_sim.ants[ant_idx].direction.turn_right()
         }
 
         KeyCode::Char('R') => {
-            ant_sim.ants[ant_idx].direction = ant_sim.ants[ant_idx].direction.turn_left();
+            ant_sim.ants[ant_idx].direction = ant_sim.ants[ant_idx].direction.turn_left()
         }
         _ => {}
     }

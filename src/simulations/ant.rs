@@ -68,7 +68,7 @@ impl Default for Ant {
     /// Constructs a new empty `Ant`
     fn default() -> Self {
         Ant {
-            // Set position to invalid position to reposition in the center of the screen when the
+            // Set to invalid position to reposition in the center of the screen when the
             // frame is available
             x: usize::MAX,
             y: usize::MAX,
@@ -79,13 +79,37 @@ impl Default for Ant {
 }
 
 impl Ant {
-    /// Constructs a new `Ant` given the position and direction
-    pub fn new(x: usize, y: usize, direction: Direction) -> Self {
-        Ant {
-            x,
-            y,
-            color: Color::Indexed(16),
-            direction,
+    /// Move the ant in the specified direction with grid wrapping
+    pub fn change_position(&mut self, direction: Direction, grid: &Grid) {
+        match direction {
+            Direction::Left => {
+                self.x = if self.x > 0 {
+                    self.x - 1
+                } else {
+                    grid.width() - 1
+                };
+            }
+            Direction::Right => {
+                self.x = if self.x < (grid.width() - 1) {
+                    self.x + 1
+                } else {
+                    0
+                };
+            }
+            Direction::Up => {
+                self.y = if self.y < (grid.height() - 1) {
+                    self.y + 1
+                } else {
+                    0
+                };
+            }
+            Direction::Down => {
+                self.y = if self.y > 0 {
+                    self.y - 1
+                } else {
+                    grid.height() - 1
+                };
+            }
         }
     }
 }
@@ -137,36 +161,7 @@ impl AntSim {
 
     /// Moves the ant forward based on its direction with grid wrapping
     pub fn ant_forward(ant: &mut Ant, grid: &Grid) {
-        match ant.direction {
-            Direction::Left => {
-                ant.x = if ant.x > 0 {
-                    ant.x - 1
-                } else {
-                    grid.width() - 1
-                };
-            }
-            Direction::Right => {
-                ant.x = if ant.x < (grid.cells[0].len() - 1) {
-                    ant.x + 1
-                } else {
-                    0
-                };
-            }
-            Direction::Up => {
-                ant.y = if ant.y < (grid.cells.len() - 1) {
-                    ant.y + 1
-                } else {
-                    0
-                };
-            }
-            Direction::Down => {
-                ant.y = if ant.y > 0 {
-                    ant.y - 1
-                } else {
-                    grid.height() - 1
-                };
-            }
-        }
+        ant.change_position(ant.direction, grid);
     }
 
     /// Turns the ant based on the current cell state and rule
