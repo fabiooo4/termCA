@@ -48,22 +48,17 @@ impl App<'_> {
     pub fn new() -> Self {
         let simulations_list = vec![
             SimulationItem {
-                item: ListItem::from(vec!["Langton's Ant".into(), "".into()]),
+                item: ListItem::new("Langton's Ant\n "),
                 screen: Screen::Ant,
             },
             SimulationItem {
-                item: ListItem::from(vec!["Simulazione 2".into(), "".into()]),
-                screen: Screen::Ant,
-            },
-            SimulationItem {
-                item: ListItem::from(vec!["Exit".into()]),
+                item: ListItem::new("Exit\n "),
                 screen: Screen::Exit,
             },
         ];
 
-        let mut edit_list =
-            vec![ListItem::from(vec!["Edit".into(), "".into()]); simulations_list.len() - 1];
-        edit_list.push(ListItem::from(vec!["".into(), "".into()]));
+        let mut edit_list = vec![ListItem::new("Edit\n "); simulations_list.len() - 1];
+        edit_list.push(ListItem::new(" \n "));
 
         App {
             help_screen: false,
@@ -116,13 +111,7 @@ impl App<'_> {
     }
 
     pub fn select_last(&mut self) {
-        if self.sim_list_state.selected().is_some() {
-            self.sim_list_state.select_last();
-        } else {
-            if self.edit_list_state.selected() == Some(self.simulation_items.len() - 1) {
-                self.edit_list_state.select_last();
-            }
-        }
+        self.sim_list_state.select_last();
     }
 
     pub fn select_next(&mut self) {

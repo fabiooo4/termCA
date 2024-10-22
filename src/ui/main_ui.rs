@@ -87,11 +87,15 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         ])
         .split(frame.area());
 
+
+    let longest_sim = app.simulation_items.iter().map(|i| i.item.width()).max().unwrap_or(1);
+    let longest_edit = app.edit_items.iter().map(|i| i.width()).max().unwrap_or(1);
+
     let horizontal_layout = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
             Constraint::Min(1),
-            Constraint::Length(23),
+            Constraint::Length(longest_sim as u16 + longest_edit as u16 + 6),
             Constraint::Min(1),
         ])
         .split(vertical_layout[4]);
@@ -103,8 +107,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .spacing(2)
         .constraints([
             Constraint::Length(0),
-            Constraint::Length(13),
-            Constraint::Length(4),
+            Constraint::Length(longest_sim as u16),
+            Constraint::Length(longest_edit as u16),
             Constraint::Length(0),
         ])
         .split(horizontal_layout[1]);
@@ -121,9 +125,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     let subtitle = Paragraph::new(
         "Cellular Automata".to_string()
-            + &app.sim_list_state.offset().to_string()
-            + " "
-            + &app.edit_list_state.offset().to_string(),
+        + &longest_sim.to_string() +  " "
+        + &longest_edit.to_string()
     )
     .alignment(Alignment::Center)
     .white()
@@ -166,13 +169,14 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     let sim_list = List::new(sim_items)
         .style(Style::default().white().dim())
         .highlight_style(Style::default().yellow().bold().not_dim())
+        .scroll_padding(1)
         .direction(ListDirection::TopToBottom);
 
     let settings_list = List::new(settings_items)
         .style(Style::default().white().dim())
         .highlight_style(Style::default().yellow().bold().not_dim())
+        .scroll_padding(1)
         .direction(ListDirection::TopToBottom);
-
 
     frame.render_stateful_widget(sim_list, list_layout[1], &mut app.sim_list_state);
     frame.render_stateful_widget(settings_list, list_layout[2], &mut app.edit_list_state);
