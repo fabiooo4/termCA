@@ -133,7 +133,7 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                         app.editing = None;
                         app.current_screen = Screen::Ant;
                     } else {
-                        // Ant edit mode
+                        // Edit ant position screen
                         app.editing = Some(Screen::AntEdit(ant_sim.edit_item_selected - 1));
                     }
                 }
@@ -151,6 +151,24 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                     for _ in 0..scroll_factor {
                         ant_sim.scroll_state.scroll_up();
                     }
+                }
+
+                KeyCode::Char(' ') => {
+                    // Parse the user inserted rules
+                    ant_sim.rules = AntSim::parse_ant_ruleset(&ant_sim.rules_input.value());
+
+                    // Add states for every rule
+                    let rules_len = ant_sim.rules.len();
+                    let states_len = ant_sim.states.len();
+                    if rules_len > states_len {
+                        for i in (states_len + 1)..=rules_len {
+                            ant_sim.states.push(Color::Indexed(i as u8));
+                        }
+                    }
+
+                    // Change the screen
+                    app.editing = None;
+                    app.current_screen = Screen::Ant;
                 }
 
                 _ => {}
@@ -189,9 +207,7 @@ pub fn edit_ant(key: KeyEvent, app: &mut App, ant_idx: usize) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
 
     match key.code {
-        KeyCode::Char('?') => {
-            app.help_screen = !app.help_screen
-        }
+        KeyCode::Char('?') => app.help_screen = !app.help_screen,
 
         KeyCode::Enter | KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => {
             app.editing = Some(Screen::Ant)

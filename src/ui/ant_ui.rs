@@ -546,6 +546,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         (Line::from("Enter".yellow()), Line::from("Select item")),
         (Line::from("K / ↑".yellow()), Line::from("Previous item")),
         (Line::from("J / ↓".yellow()), Line::from("Next item")),
+        (Line::from("Space".yellow()), Line::from("Start simulation")),
     ];
 
     if app.help_screen {
