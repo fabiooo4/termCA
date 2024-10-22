@@ -1,9 +1,8 @@
 use crossterm::event::{KeyCode, KeyEvent};
 
-use crate::{
-    app::{App, Screen},
-    simulations::ant::{Ant, AntSim},
-};
+use crate::
+    app::{App, Screen}
+;
 
 pub fn main(key: KeyEvent, app: &mut App) {
     match key.code {

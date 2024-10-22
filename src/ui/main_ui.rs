@@ -1,9 +1,9 @@
 use ratatui::{
-    layout::{Flex, Rect},
+    layout::{Flex, Margin, Rect},
     text::Line,
     widgets::{
         block::{Position, Title},
-        Clear, List, ListDirection, ListItem, ListState,
+        List, ListDirection, ListItem, Scrollbar, ScrollbarOrientation,
     },
     Frame,
 };
@@ -87,8 +87,12 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         ])
         .split(frame.area());
 
-
-    let longest_sim = app.simulation_items.iter().map(|i| i.item.width()).max().unwrap_or(1);
+    let longest_sim = app
+        .simulation_items
+        .iter()
+        .map(|i| i.item.width())
+        .max()
+        .unwrap_or(1);
     let longest_edit = app.edit_items.iter().map(|i| i.width()).max().unwrap_or(1);
 
     let horizontal_layout = Layout::default()
@@ -125,8 +129,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     let subtitle = Paragraph::new(
         "Cellular Automata".to_string()
-        + &longest_sim.to_string() +  " "
-        + &longest_edit.to_string()
     )
     .alignment(Alignment::Center)
     .white()
@@ -180,6 +182,24 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     frame.render_stateful_widget(sim_list, list_layout[1], &mut app.sim_list_state);
     frame.render_stateful_widget(settings_list, list_layout[2], &mut app.edit_list_state);
+
+    let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight);
+    let offsets_number: usize = ((app.simulation_items.len() * 2) as f32
+        / (horizontal_layout[1].height - 2) as f32)
+        .ceil() as usize;
+
+    app.scroll_state = app.scroll_state.content_length(offsets_number);
+
+    if horizontal_layout[1].height - 2 < app.simulation_items.len() as u16 * 2 {
+        frame.render_stateful_widget(
+            scrollbar,
+            horizontal_layout[1].inner(Margin {
+                vertical: 1,
+                horizontal: 0,
+            }),
+            &mut app.scroll_state,
+        );
+    }
 
     /////////////////////////////
     // Help screen

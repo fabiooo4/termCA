@@ -1,4 +1,3 @@
-use std::usize;
 
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect, Size},
@@ -25,11 +24,11 @@ use crate::{
     app::{App, InputMode},
     simulations::{
         self,
-        ant::{self, Ant, AntSim},
+        ant::AntSim,
     },
 };
 
-use super::{centered_rect_length, centered_rect_percent, render_help};
+use super::{centered_rect_percent, render_help};
 
 pub fn ant_screen(frame: &mut Frame, app: &mut App) {
     if frame

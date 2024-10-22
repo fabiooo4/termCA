@@ -1,8 +1,8 @@
 use std::time::Duration;
 
-use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::style::Color;
-use tui_input::{backend::crossterm::EventHandler, InputRequest};
+use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
     app::{App, InputMode, Screen},

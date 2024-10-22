@@ -1,7 +1,7 @@
 use crate::simulations::ant::AntSim;
 use ratatui::{
     symbols::Marker,
-    widgets::{List, ListItem, ListState},
+    widgets::{ListItem, ListState, ScrollbarState},
 };
 use std::time::Duration;
 
@@ -35,8 +35,9 @@ pub struct App<'a> {
     pub marker: Marker,          // Character to draw the cells
     pub simulation_items: Vec<SimulationItem<'a>>,
     pub edit_items: Vec<ListItem<'a>>,
-    pub sim_list_state: ListState, // State of the list of CAs
-    pub edit_list_state: ListState,
+    pub sim_list_state: ListState,  // State of the list of CAs
+    pub edit_list_state: ListState, // State of the list of edits
+    pub scroll_state: ScrollbarState,
 
     /// Ant simulation data (optional because it's only used in the Ant
     /// screen)
@@ -72,6 +73,7 @@ impl App<'_> {
             edit_items: edit_list,
             sim_list_state: ListState::default().with_selected(Some(0)),
             edit_list_state: ListState::default(),
+            scroll_state: ScrollbarState::default(),
 
             ant_sim: None,
         }
@@ -168,5 +170,6 @@ impl App<'_> {
         if self.edit_list_state.selected().is_some() {
             self.sim_list_state = ListState::default().with_offset(self.edit_list_state.offset());
         }
+        self.scroll_state = self.scroll_state.position(self.sim_list_state.offset());
     }
 }
