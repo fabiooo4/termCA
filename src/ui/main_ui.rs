@@ -82,7 +82,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Constraint::Length(4), // Title
             Constraint::Length(1), // Subtitle
             Constraint::Max(3),    // Spacing
-            Constraint::Min(5),    // List block
+            Constraint::Min(8),    // List block
             Constraint::Min(0),    // Spacing
         ])
         .split(frame.area());
