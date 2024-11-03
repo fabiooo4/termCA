@@ -1,9 +1,9 @@
+use std::cell::Cell;
+
 use ratatui::{
-    layout::{Flex, Margin, Rect},
-    text::Line,
-    widgets::{
-        List, ListDirection, ListItem, Scrollbar, ScrollbarOrientation,
-    },
+    layout::{Margin, Rect},
+    text::{Line, Text},
+    widgets::{Row, Scrollbar, ScrollbarOrientation, Table},
     Frame,
 };
 
@@ -84,12 +84,12 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .split(frame.area());
 
     let longest_sim = app
-        .simulation_items
+        .list_items
         .iter()
-        .map(|i| i.item.width())
+        .map(|i| i.label.len())
         .max()
         .unwrap_or(1);
-    let longest_edit = app.edit_items.iter().map(|i| i.width()).max().unwrap_or(1);
+    let longest_edit = 4;
 
     let horizontal_layout = Layout::default()
         .direction(Direction::Horizontal)
@@ -101,16 +101,10 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .split(vertical_layout[4]);
 
     let list_layout = Layout::default()
-        .direction(Direction::Horizontal)
-        .flex(Flex::Center)
+        .direction(Direction::Vertical)
+        .horizontal_margin(2)
         .vertical_margin(1)
-        .spacing(2)
-        .constraints([
-            Constraint::Length(0),
-            Constraint::Length(longest_sim as u16),
-            Constraint::Length(longest_edit as u16),
-            Constraint::Length(0),
-        ])
+        .constraints([Constraint::Min(1)])
         .split(horizontal_layout[1]);
 
     /////////////////////////////
@@ -123,12 +117,10 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .alignment(Alignment::Center)
         .build();
 
-    let subtitle = Paragraph::new(
-        "Cellular Automata".to_string()
-    )
-    .alignment(Alignment::Center)
-    .white()
-    .bold();
+    let subtitle = Paragraph::new("Cellular Automata".to_string())
+        .alignment(Alignment::Center)
+        .white()
+        .bold();
 
     frame.render_widget(title, vertical_layout[1]);
     frame.render_widget(subtitle, vertical_layout[2]);
@@ -142,51 +134,48 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     frame.render_widget(list_border, horizontal_layout[1]);
 
-    let mut sim_items: Vec<ListItem> = app
-        .simulation_items
+    let list_items: Vec<Row> = app
+        .list_items
         .iter()
-        .map(|item| item.item.clone())
+        .enumerate()
+        .map(|(i, item)| {
+            Row::new(vec![
+                Text::from(format!("{}\n", item.label.clone())),
+                if i != app.list_items.len() - 1 {
+                    Text::from("Edit\n".to_string())
+                } else {
+                    Text::from("\n".to_string())
+                },
+            ])
+            .style(Style::default().white().dim())
+            .height(2)
+        })
         .collect();
 
-    let mut settings_items: Vec<ListItem> =
-        app.edit_items.to_vec();
-
     // Highlight added to the selected row, but on the column that is not selected
-    let partial_highlight = Style::default().white().bold().not_dim();
+    let selected_row_style = Style::default().white().bold().not_dim();
+    let selected_cell_style = Style::default().yellow().bold().not_dim();
 
-    if let Some(idx) = app.edit_list_state.selected() {
-        sim_items[idx] = sim_items[idx].clone().style(partial_highlight);
-    }
+    let list = Table::new(
+        list_items,
+        [
+            Constraint::Length(longest_sim as u16 + 1),
+            Constraint::Min(longest_edit as u16 + 1),
+        ],
+    )
+    .row_highlight_style(selected_row_style)
+    .cell_highlight_style(selected_cell_style);
 
-    if let Some(idx) = app.sim_list_state.selected() {
-        if idx < app.simulation_items.len() - 1 {
-            settings_items[idx] = settings_items[idx].clone().style(partial_highlight);
-        }
-    }
-
-    let sim_list = List::new(sim_items)
-        .style(Style::default().white().dim())
-        .highlight_style(Style::default().yellow().bold().not_dim())
-        .scroll_padding(1)
-        .direction(ListDirection::TopToBottom);
-
-    let settings_list = List::new(settings_items)
-        .style(Style::default().white().dim())
-        .highlight_style(Style::default().yellow().bold().not_dim())
-        .scroll_padding(1)
-        .direction(ListDirection::TopToBottom);
-
-    frame.render_stateful_widget(sim_list, list_layout[1], &mut app.sim_list_state);
-    frame.render_stateful_widget(settings_list, list_layout[2], &mut app.edit_list_state);
+    frame.render_stateful_widget(list, list_layout[0], &mut app.list_state);
 
     let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight);
-    let offsets_number: usize = ((app.simulation_items.len() * 2) as f32
+    let offsets_number: usize = ((app.list_items.len() * 2) as f32
         / (horizontal_layout[1].height - 2) as f32)
         .ceil() as usize;
 
     app.scroll_state = app.scroll_state.content_length(offsets_number);
 
-    if horizontal_layout[1].height - 2 < app.simulation_items.len() as u16 * 2 {
+    if horizontal_layout[1].height - 2 < app.list_items.len() as u16 * 2 {
         frame.render_stateful_widget(
             scrollbar,
             horizontal_layout[1].inner(Margin {

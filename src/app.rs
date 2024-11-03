@@ -1,7 +1,7 @@
 use crate::simulations::ant::AntSim;
 use ratatui::{
     symbols::Marker,
-    widgets::{ListItem, ListState, ScrollbarState},
+    widgets::{ScrollbarState, TableState},
 };
 use std::time::Duration;
 
@@ -19,13 +19,13 @@ pub enum InputMode {
     Editing,
 }
 
-pub struct SimulationItem<'a> {
-    pub item: ListItem<'a>,
+pub struct SimulationItem {
+    pub label: String,
     pub screen: Screen,
 }
 
 /// Struct that holds the application data
-pub struct App<'a> {
+pub struct App {
     pub current_screen: Screen,
     pub editing: Option<Screen>,
     pub help_screen: bool,
@@ -33,10 +33,8 @@ pub struct App<'a> {
     pub speed: Duration,         // Delay between each generation
     pub speed_multiplier: usize, // Number of generations per frame
     pub marker: Marker,          // Character to draw the cells
-    pub simulation_items: Vec<SimulationItem<'a>>,
-    pub edit_items: Vec<ListItem<'a>>,
-    pub sim_list_state: ListState,  // State of the list of CAs
-    pub edit_list_state: ListState, // State of the list of edits
+    pub list_items: Vec<SimulationItem>,
+    pub list_state: TableState, // State of the list
     pub scroll_state: ScrollbarState,
 
     /// Ant simulation data (optional because it's only used in the Ant
@@ -44,22 +42,19 @@ pub struct App<'a> {
     pub ant_sim: Option<AntSim>,
 }
 
-impl App<'_> {
+impl App {
     /// Constructs a new `App` with default values
     pub fn new() -> Self {
         let simulations_list = vec![
             SimulationItem {
-                item: ListItem::new("Langton's Ant\n "),
+                label: String::from("Langton's Ant\n "),
                 screen: Screen::Ant,
             },
             SimulationItem {
-                item: ListItem::new("Exit\n "),
+                label: String::from("Exit\n "),
                 screen: Screen::Exit,
             },
         ];
-
-        let mut edit_list = vec![ListItem::new("Edit\n "); simulations_list.len() - 1];
-        edit_list.push(ListItem::new(" \n "));
 
         App {
             help_screen: false,
@@ -69,10 +64,8 @@ impl App<'_> {
             speed: Duration::from_millis(80),
             speed_multiplier: 1,
             marker: Marker::HalfBlock,
-            simulation_items: simulations_list,
-            edit_items: edit_list,
-            sim_list_state: ListState::default().with_selected(Some(0)),
-            edit_list_state: ListState::default(),
+            list_items: simulations_list,
+            list_state: TableState::new().with_selected_cell((0, 0)),
             scroll_state: ScrollbarState::default(),
 
             ant_sim: None,
@@ -94,82 +87,62 @@ impl App<'_> {
     }
 
     pub fn change_screen_selected(&mut self) {
-        if let Some(i) = self.sim_list_state.selected() {
-            self.current_screen = self.simulation_items[i].screen
-        }
-
-        if let Some(i) = self.edit_list_state.selected() {
-            self.current_screen = self.simulation_items[i].screen
+        if let Some(i) = self.list_state.selected() {
+            self.current_screen = self.list_items[i].screen
         }
     }
 
     // List handling
     pub fn select_first(&mut self) {
-        if self.sim_list_state.selected().is_some() {
-            self.sim_list_state.select_first();
+        if let Some(selected_column) = self.list_state.selected_column() {
+            self.list_state.select_cell(Some((0, selected_column)));
         } else {
-            self.edit_list_state.select_first();
+            self.list_state.select_first();
         }
+
+        self.scroll_state = self.scroll_state.position(0);
     }
 
     pub fn select_last(&mut self) {
-        self.sim_list_state.select_last();
+        self.list_state.select_first_column();
+        self.list_state.select_last();
+
+        self.scroll_state = self.scroll_state.position(100000);
     }
 
     pub fn select_next(&mut self) {
-        if self.sim_list_state.selected().is_some()
-            && self.sim_list_state.selected() != Some(self.simulation_items.len() - 1)
+        if self.list_state.selected_column() == Some(1)
+            && self.list_state.selected() == Some(self.list_items.len() - 2)
         {
-            self.sim_list_state.select_next();
+            self.select_last()
+        } else if self.list_state.selected().is_some()
+            && self.list_state.selected() != Some(self.list_items.len() - 1)
+        {
+            self.list_state.select_next();
         }
 
-        if self.edit_list_state.selected().is_some()
-            && self.edit_list_state.selected() != Some(self.edit_items.len() - 2)
-        {
-            self.edit_list_state.select_next();
-        } else if self.edit_list_state.selected().is_some()
-            && self.edit_list_state.selected() != Some(self.edit_items.len() - 1)
-        {
-            self.sim_list_state.select_last();
-        }
+        self.scroll_state = self.scroll_state.position(self.list_state.offset());
     }
 
     pub fn select_previous(&mut self) {
-        if self.sim_list_state.selected().is_some() && self.sim_list_state.selected() != Some(0) {
-            self.sim_list_state.select_previous();
+        if self.list_state.selected().is_some() && self.list_state.selected() != Some(0) {
+            self.list_state.select_previous();
         }
 
-        if self.edit_list_state.selected().is_some() && self.edit_list_state.selected() != Some(0) {
-            self.edit_list_state.select_previous();
-        }
+        self.scroll_state = self.scroll_state.position(self.list_state.offset());
     }
 
     pub fn select_left(&mut self) {
-        if self.edit_list_state.selected().is_some() {
-            self.sim_list_state.select(self.edit_list_state.selected());
-            self.edit_list_state.select(None);
-            self.sync_lists();
+        if self.list_state.selected().is_some() {
+            self.list_state.select_previous_column();
         }
     }
 
     pub fn select_right(&mut self) {
-        if self.sim_list_state.selected().is_some()
-            && self.sim_list_state.selected() != Some(self.simulation_items.len() - 1)
+        if self.list_state.selected().is_some()
+            && self.list_state.selected() != Some(self.list_items.len() - 1)
         {
-            self.edit_list_state.select(self.sim_list_state.selected());
-            self.sim_list_state.select(None);
-            self.sync_lists();
+            self.list_state.select_next_column();
         }
-    }
-
-    pub fn sync_lists(&mut self) {
-        if self.sim_list_state.selected().is_some() {
-            self.edit_list_state = ListState::default().with_offset(self.sim_list_state.offset());
-        }
-
-        if self.edit_list_state.selected().is_some() {
-            self.sim_list_state = ListState::default().with_offset(self.edit_list_state.offset());
-        }
-        self.scroll_state = self.scroll_state.position(self.sim_list_state.offset());
     }
 }
