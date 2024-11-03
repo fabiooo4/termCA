@@ -1,4 +1,3 @@
-
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect, Size},
     style::Modifier,
@@ -21,10 +20,7 @@ use tui_scrollview::ScrollView;
 
 use crate::{
     app::{App, InputMode},
-    simulations::{
-        self,
-        ant::AntSim,
-    },
+    simulations::{self, ant::AntSim},
 };
 
 use super::{centered_rect_percent, render_help};
@@ -76,7 +72,9 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         let ant_sim = app.ant_sim.as_mut().unwrap();
 
         // Initialize the grid with the same size as the canvas
-        ant_sim.grid.resize(width as usize, height as usize, ant_sim.states[0]);
+        ant_sim
+            .grid
+            .resize(width as usize, height as usize, ant_sim.states[0]);
 
         // Change default ruleset
         ant_sim.rules = AntSim::parse_ant_ruleset("RRLLLRLLLLLLLLL");
@@ -107,7 +105,9 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         let ant_sim = app.ant_sim.as_mut().unwrap();
 
         // Initialize the grid with the same size as the canvas
-        ant_sim.grid.resize(width as usize, height as usize, ant_sim.states[0]);
+        ant_sim
+            .grid
+            .resize(width as usize, height as usize, ant_sim.states[0]);
 
         // Reposition the ant inside the bounds if it is outside
         for ant in ant_sim.ants.iter_mut() {
@@ -293,7 +293,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     // Selection
     /////////////////////////////
 
-    if ant_sim.scroll_state.offset().y + scroll_area.y / 2 < 10 {
+    if ant_sim.scroll_state.offset().y + scroll_area.y / 3 < 10 {
         // Select input
         ant_sim.edit_item_selected = 0;
     } else if usize::from(ant_sim.scroll_state.offset().y + scroll_area.y / 2)
@@ -592,7 +592,9 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     let ant_sim = app.ant_sim.as_mut().unwrap();
 
     // Initialize the grid with the same size as the canvas
-    ant_sim.grid.resize(width as usize, height as usize, ant_sim.states[0]);
+    ant_sim
+        .grid
+        .resize(width as usize, height as usize, ant_sim.states[0]);
 
     // Wrap ant position
     for ant in ant_sim.ants.iter_mut() {
@@ -611,11 +613,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Border content
     /////////////////////////////
 
-    let top_title = Line::from(vec![format!(
-        " Editing Ant {} position ",
-        ant_idx
-    )
-    .yellow()]);
+    let top_title = Line::from(vec![format!(" Editing Ant {} position ", ant_idx).yellow()]);
 
     let right_style = Style::default().bold().yellow();
     let left_style = Style::default().bold().red();
