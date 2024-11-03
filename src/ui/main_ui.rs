@@ -2,7 +2,6 @@ use ratatui::{
     layout::{Flex, Margin, Rect},
     text::Line,
     widgets::{
-        block::{Position, Title},
         List, ListDirection, ListItem, Scrollbar, ScrollbarOrientation,
     },
     Frame,
@@ -60,12 +59,9 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Border
     /////////////////////////////
 
-    let key_help = Title::from(Line::from(vec![" '?' ".yellow(), "Help ".into()]))
-        .position(Position::Bottom)
-        .alignment(Alignment::Center);
-
+    let key_help = Line::from(vec![" '?' ".yellow(), "Help ".into()]);
     let border = Block::default()
-        .title(key_help)
+        .title_bottom(key_help.centered())
         .borders(Borders::ALL)
         .border_type(BorderType::Double);
 
@@ -153,7 +149,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .collect();
 
     let mut settings_items: Vec<ListItem> =
-        app.edit_items.iter().map(|item| item.clone()).collect();
+        app.edit_items.to_vec();
 
     // Highlight added to the selected row, but on the column that is not selected
     let partial_highlight = Style::default().white().bold().not_dim();

@@ -92,11 +92,11 @@ impl Grid {
     /// Resizes the grid in-place by providing the new dimensions and a new state
     pub fn resize(&mut self, new_width: usize, new_height: usize, new_state: Color) {
         for row in self.cells.iter_mut() {
-            row.resize(new_width as usize, new_state);
+            row.resize(new_width, new_state);
         }
 
         self.cells
-            .resize(new_height as usize, vec![new_state; new_width as usize]);
+            .resize(new_height, vec![new_state; new_width]);
     }
 
     /// Returns the width of the grid

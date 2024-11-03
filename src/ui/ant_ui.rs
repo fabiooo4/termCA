@@ -13,7 +13,6 @@ use ratatui::{
     style::{Color, Style, Stylize},
     text::Line,
     widgets::{
-        block::{Position, Title},
         canvas::{Canvas, Points},
         Block, BorderType, Borders, Clear, Paragraph,
     },
@@ -71,7 +70,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     let width = f64::from(frame.area().width - 2);
     let height = f64::from((frame.area().height - 2) * 2);
 
-    if let None = app.ant_sim {
+    if app.ant_sim.is_none() {
         app.start_ant_default();
 
         let ant_sim = app.ant_sim.as_mut().unwrap();
@@ -129,31 +128,24 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Border content
     /////////////////////////////
 
-    let top_title = Title::from(Line::from(vec![" Langton's Ant ".yellow()]))
-        .position(Position::Top)
-        .alignment(Alignment::Center);
+    let top_title = Line::from(vec![" Langton's Ant ".yellow()]);
 
-    let bottom_left_title = Title::from(Line::from(vec![
+    let bottom_left_title = Line::from(vec![
         " Iteration: ".into(),
         ant_sim.generation.to_string().yellow(),
         " ".into(),
-    ]))
-    .position(Position::Bottom);
+    ]);
 
-    let key_help = Title::from(Line::from(vec![" '?' ".yellow(), "Help ".into()]))
-        .position(Position::Bottom)
-        .alignment(Alignment::Center);
+    let key_help = Line::from(vec![" '?' ".yellow(), "Help ".into()]);
 
-    let bottom_right_title = Title::from(Line::from(vec![
+    let bottom_right_title = Line::from(vec![
         " Speed: ".into(),
         if app.speed.as_millis() == 0 {
             format!("{}x ", app.speed_multiplier).yellow()
         } else {
             format!("{}ms ", app.speed.as_millis()).yellow()
         },
-    ]))
-    .position(Position::Bottom)
-    .alignment(Alignment::Right);
+    ]);
 
     /* let top_left_debug = Title::from(Line::from(vec![
         "(".into(),
@@ -191,10 +183,10 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
                 .border_type(BorderType::Double)
                 .borders(Borders::ALL)
                 // .title(top_left_debug)
-                .title(top_title)
-                .title(bottom_left_title)
-                .title(bottom_right_title)
-                .title(key_help)
+                .title_top(top_title.centered())
+                .title_bottom(bottom_left_title.left_aligned())
+                .title_bottom(bottom_right_title.right_aligned())
+                .title_bottom(key_help.centered())
                 .title_style(Style::default().bold()),
         )
         .marker(app.marker)
@@ -619,20 +611,18 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Border content
     /////////////////////////////
 
-    let top_title = Title::from(Line::from(vec![format!(
+    let top_title = Line::from(vec![format!(
         " Editing Ant {} position ",
         ant_idx
     )
-    .yellow()]))
-    .position(Position::Top)
-    .alignment(Alignment::Center);
+    .yellow()]);
 
     let right_style = Style::default().bold().yellow();
     let left_style = Style::default().bold().red();
     let up_style = Style::default().bold().blue();
     let down_style = Style::default().bold().green();
 
-    let bottom_left_title = Title::from(Line::from(vec![
+    let bottom_left_title = Line::from(vec![
         " Direction: ".into(),
         Span::from(ant_sim.ants[ant_idx].direction.to_string()).style(
             match ant_sim.ants[ant_idx].direction {
@@ -643,23 +633,18 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             },
         ),
         " ".into(),
-    ]))
-    .position(Position::Bottom);
+    ]);
 
-    let help_label = Title::from(Line::from(vec![" '?' ".yellow(), "Help ".into()]))
-        .position(Position::Bottom)
-        .alignment(Alignment::Center);
+    let help_label = Line::from(vec![" '?' ".yellow(), "Help ".into()]);
 
-    let bottom_right_title = Title::from(Line::from(vec![
+    let bottom_right_title = Line::from(vec![
         " Position: ".into(),
         format!(
             "(x: {}, y: {}) ",
             ant_sim.ants[ant_idx].x, ant_sim.ants[ant_idx].y
         )
         .into(),
-    ]))
-    .position(Position::Bottom)
-    .alignment(Alignment::Right);
+    ]);
 
     /////////////////////////////
     // Simulation canvas
@@ -670,10 +655,10 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Block::default()
                 .border_type(BorderType::Double)
                 .borders(Borders::ALL)
-                .title(top_title)
-                .title(bottom_left_title)
-                .title(bottom_right_title)
-                .title(help_label)
+                .title_top(top_title.centered())
+                .title_bottom(bottom_left_title.left_aligned())
+                .title_bottom(bottom_right_title.right_aligned())
+                .title_bottom(help_label.centered())
                 .title_style(Style::default().bold()),
         )
         .marker(app.marker)

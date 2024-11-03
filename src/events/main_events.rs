@@ -39,7 +39,7 @@ pub fn main(key: KeyEvent, app: &mut App) {
         KeyCode::Enter => {
             // If a simulation is selected from the list,
             // change the screen to that simulation
-            if !app.sim_list_state.selected().is_none() {
+            if app.sim_list_state.selected().is_some() {
                 app.change_screen_selected();
             }
 

@@ -34,16 +34,16 @@ pub fn main(key: KeyEvent, app: &mut App) {
                 app.speed = app.speed.saturating_sub(Duration::from_millis(10));
             } else if app.speed > Duration::from_millis(0) {
                 app.speed = app.speed.saturating_sub(Duration::from_millis(1));
+            }
+
+            if app.speed_multiplier < 10 {
+                app.speed_multiplier = app.speed_multiplier.saturating_add(1);
+            } else if app.speed_multiplier < 100 {
+                app.speed_multiplier = app.speed_multiplier.saturating_add(10);
+            } else if app.speed_multiplier < 1000 {
+                app.speed_multiplier = app.speed_multiplier.saturating_add(100);
             } else {
-                if app.speed_multiplier < 10 {
-                    app.speed_multiplier = app.speed_multiplier.saturating_add(1);
-                } else if app.speed_multiplier < 100 {
-                    app.speed_multiplier = app.speed_multiplier.saturating_add(10);
-                } else if app.speed_multiplier < 1000 {
-                    app.speed_multiplier = app.speed_multiplier.saturating_add(100);
-                } else {
-                    app.speed_multiplier = app.speed_multiplier.saturating_add(1000);
-                }
+                app.speed_multiplier = app.speed_multiplier.saturating_add(1000);
             }
         }
         KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
@@ -118,7 +118,7 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                         // Confirm button
 
                         // Parse the user inserted rules
-                        ant_sim.rules = AntSim::parse_ant_ruleset(&ant_sim.rules_input.value());
+                        ant_sim.rules = AntSim::parse_ant_ruleset(ant_sim.rules_input.value());
 
                         // Add states for every rule
                         let rules_len = ant_sim.rules.len();
@@ -155,7 +155,7 @@ pub fn edit(key: KeyEvent, app: &mut App) {
 
                 KeyCode::Char(' ') => {
                     // Parse the user inserted rules
-                    ant_sim.rules = AntSim::parse_ant_ruleset(&ant_sim.rules_input.value());
+                    ant_sim.rules = AntSim::parse_ant_ruleset(ant_sim.rules_input.value());
 
                     // Add states for every rule
                     let rules_len = ant_sim.rules.len();

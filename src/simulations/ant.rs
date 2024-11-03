@@ -155,7 +155,7 @@ impl AntSim {
                     Self::ant_forward(ant, &ant_sim.grid);
                 }
             }
-            ant_sim.generation = ant_sim.generation.saturating_add(1 * app.speed_multiplier);
+            ant_sim.generation = ant_sim.generation.saturating_add(app.speed_multiplier);
         }
     }
 
@@ -165,7 +165,7 @@ impl AntSim {
     }
 
     /// Turns the ant based on the current cell state and rule
-    pub fn ant_turn(ant: &mut Ant, grid: &Grid, states: &Vec<Color>, rules: &Vec<Direction>) {
+    pub fn ant_turn(ant: &mut Ant, grid: &Grid, states: &[Color], rules: &[Direction]) {
         for (state, rule) in states.iter().zip(rules.iter()) {
             if grid.cells[ant.y][ant.x] == *state {
                 ant.direction = ant.direction.turn(rule);
@@ -175,7 +175,7 @@ impl AntSim {
     }
 
     /// Flips the current cell state based on the rule
-    pub fn ant_flip(ant: &Ant, grid: &mut Grid, states: &Vec<Color>, rules: &Vec<Direction>) {
+    pub fn ant_flip(ant: &Ant, grid: &mut Grid, states: &[Color], rules: &[Direction]) {
         let rules_len = rules.len();
         let mut states = states[0..rules_len].iter().cycle();
 
