@@ -1,5 +1,3 @@
-use std::cell::Cell;
-
 use ratatui::{
     layout::{Margin, Rect},
     text::{Line, Text},
