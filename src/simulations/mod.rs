@@ -1,9 +1,12 @@
+pub mod ant;
+pub mod elementary;
+
+
 use ratatui::style::Color;
 use std::fmt;
 use std::fmt::Display;
 use std::fmt::Formatter;
 
-pub mod ant;
 
 /// Enum that represents the 2D directions
 /// ```plain

@@ -1,4 +1,4 @@
-use crate::simulations::ant::AntSim;
+use crate::simulations::{ant::AntSim, elementary::ElementarySim};
 use ratatui::{
     symbols::Marker,
     widgets::{ScrollbarState, TableState},
@@ -9,9 +9,10 @@ use std::time::Duration;
 #[derive(Clone, Copy)]
 pub enum Screen {
     Main,
+    Exit,
     Ant,
     AntEdit(usize), // Screen for editing the ants' position and direction
-    Exit,
+    Elementary,
 }
 
 pub enum InputMode {
@@ -40,6 +41,7 @@ pub struct App {
     /// Ant simulation data (optional because it's only used in the Ant
     /// screen)
     pub ant_sim: Option<AntSim>,
+    pub elementary_sim: Option<ElementarySim>,
 }
 
 impl App {
@@ -69,6 +71,7 @@ impl App {
             scroll_state: ScrollbarState::default(),
 
             ant_sim: None,
+            elementary_sim: None,
         }
     }
 
