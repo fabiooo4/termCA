@@ -77,7 +77,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             .resize(width as usize, height as usize, ant_sim.states[0]);
 
         // Change default ruleset
-        ant_sim.rules = AntSim::parse_ant_ruleset("RRLLLRLLLLLLLLL");
+        // ant_sim.rules = AntSim::parse_ant_ruleset("RRLLLRLLLLLLLLL");
+        ant_sim.rules = AntSim::parse_ant_ruleset("RL");
 
         // Set ant position randomly biased towards the center
         let mut rng = rand::thread_rng();

@@ -218,7 +218,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                     InputMode::Normal => Style::default(),
                     InputMode::Editing => Style::default().yellow().bold(),
                 })
-                .title(" Input "),
+                .title(" Rule "),
         );
 
     frame.render_widget(input, ruleset_layout_h[1]);
