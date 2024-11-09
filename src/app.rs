@@ -87,9 +87,7 @@ impl App {
             self.speed = self.speed.saturating_sub(Duration::from_millis(10));
         } else if self.speed > Duration::from_millis(0) {
             self.speed = self.speed.saturating_sub(Duration::from_millis(1));
-        }
-
-        if self.speed_multiplier < 10 {
+        } else if self.speed_multiplier < 10 {
             self.speed_multiplier = self.speed_multiplier.saturating_add(1);
         } else if self.speed_multiplier < 100 {
             self.speed_multiplier = self.speed_multiplier.saturating_add(10);
