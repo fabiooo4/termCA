@@ -19,60 +19,18 @@ pub fn main(key: KeyEvent, app: &mut App) {
             app.stop_all();
         }
         KeyCode::Char(' ') => app.is_running = !app.is_running,
-        KeyCode::Char('?') => {
-            app.help_screen = !app.help_screen;
-        }
-        KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
-            // Run simulation once
-            AntSim::run_ant_sim(app);
-        }
-        KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => {
-            // Increase simulation speed
-            if app.speed > Duration::from_millis(100) {
-                app.speed = app.speed.saturating_sub(Duration::from_millis(100));
-            } else if app.speed > Duration::from_millis(10) {
-                app.speed = app.speed.saturating_sub(Duration::from_millis(10));
-            } else if app.speed > Duration::from_millis(0) {
-                app.speed = app.speed.saturating_sub(Duration::from_millis(1));
-            }
-
-            if app.speed_multiplier < 10 {
-                app.speed_multiplier = app.speed_multiplier.saturating_add(1);
-            } else if app.speed_multiplier < 100 {
-                app.speed_multiplier = app.speed_multiplier.saturating_add(10);
-            } else if app.speed_multiplier < 1000 {
-                app.speed_multiplier = app.speed_multiplier.saturating_add(100);
-            } else {
-                app.speed_multiplier = app.speed_multiplier.saturating_add(1000);
-            }
-        }
-        KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
-            // Decrease simulation speed
-            if app.speed_multiplier > 1 {
-                if app.speed_multiplier > 1000 {
-                    app.speed_multiplier = app.speed_multiplier.saturating_sub(1000);
-                } else if app.speed_multiplier > 100 {
-                    app.speed_multiplier = app.speed_multiplier.saturating_sub(100);
-                } else if app.speed_multiplier > 10 {
-                    app.speed_multiplier = app.speed_multiplier.saturating_sub(10);
-                } else {
-                    app.speed_multiplier = app.speed_multiplier.saturating_sub(1);
-                }
-            } else if app.speed < Duration::from_millis(10) {
-                app.speed = app.speed.saturating_add(Duration::from_millis(1));
-            } else if app.speed < Duration::from_millis(100) {
-                app.speed = app.speed.saturating_add(Duration::from_millis(10));
-            } else {
-                app.speed = app.speed.saturating_add(Duration::from_millis(100));
-            }
-        }
+        KeyCode::Char('?') => app.help_screen = !app.help_screen,
+        // Run the simulation one step at a time
+        KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => app.ant_sim.as_mut().unwrap().run(app.speed_multiplier),
+        KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => app.speed_increase(),
+        KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => app.speed_decrease(),
         _ => {}
     }
 }
 
 pub fn edit(key: KeyEvent, app: &mut App) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
-    let scroll_factor = 2;
+    let scroll_factor = 2; // TODO: Replace with something better
     match ant_sim.rules_input_mode {
         InputMode::Normal => {
             match key.code {
@@ -175,10 +133,7 @@ pub fn edit(key: KeyEvent, app: &mut App) {
             }
         }
         InputMode::Editing => match key.code {
-            KeyCode::Esc => {
-                app.ant_sim.as_mut().unwrap().rules_input_mode = InputMode::Normal;
-            }
-            KeyCode::Enter => {
+            KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') => {
                 app.ant_sim.as_mut().unwrap().rules_input_mode = InputMode::Normal;
             }
             _ => {

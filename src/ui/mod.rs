@@ -1,5 +1,6 @@
-pub mod ant_ui;
 pub mod main_ui;
+pub mod ant_ui;
+pub mod elementary_ui;
 
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -16,6 +17,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     match app.current_screen {
         Screen::Main => main_ui::main_screen(frame, app),
         Screen::Ant => ant_ui::ant_screen(frame, app),
+        Screen::Elementary => elementary_ui::elementary_screen(frame, app),
 
         _ => {}
     }

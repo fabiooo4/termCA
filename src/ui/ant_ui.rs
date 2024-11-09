@@ -292,7 +292,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     /////////////////////////////
     // Selection
     /////////////////////////////
-
+    // TODO: Replace scrollview with a list of different widgets
     if ant_sim.scroll_state.offset().y + scroll_area.y / 3 < 10 {
         // Select input
         ant_sim.edit_item_selected = 0;

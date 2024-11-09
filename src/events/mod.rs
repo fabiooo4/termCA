@@ -1,5 +1,6 @@
-pub mod ant_events;
 pub mod main_events;
+pub mod ant_events;
+pub mod elementary_events;
 
 use crossterm::event::poll;
 use std::{io, time::Duration};

@@ -1,4 +1,4 @@
-use crate::app::{App, InputMode};
+use crate::app::InputMode;
 use ratatui::style::Color;
 use tui_input::Input;
 use tui_scrollview::ScrollViewState;
@@ -13,6 +13,7 @@ pub struct AntSim {
     pub rules: Vec<Direction>, // Rules for the ant
     pub generation: usize,     // Number of generations
 
+    // Edit state
     pub rules_input: Input,          // Input widget
     pub rules_input_mode: InputMode, // Input mode
 
@@ -146,17 +147,15 @@ impl AntSim {
     }
 
     /// Standard Langton's Ant simulation
-    pub fn run_ant_sim(app: &mut App) {
-        if let Some(ref mut ant_sim) = app.ant_sim {
-            for _ in 0..app.speed_multiplier {
-                for ant in ant_sim.ants.iter_mut() {
-                    Self::ant_turn(ant, &ant_sim.grid, &ant_sim.states, &ant_sim.rules);
-                    Self::ant_flip(ant, &mut ant_sim.grid, &ant_sim.states, &ant_sim.rules);
-                    Self::ant_forward(ant, &ant_sim.grid);
-                }
+    pub fn run(&mut self, speed_multiplier: usize) {
+        for _ in 0..speed_multiplier {
+            for ant in self.ants.iter_mut() {
+                Self::ant_turn(ant, &self.grid, &self.states, &self.rules);
+                Self::ant_flip(ant, &mut self.grid, &self.states, &self.rules);
+                Self::ant_forward(ant, &self.grid);
             }
-            ant_sim.generation = ant_sim.generation.saturating_add(app.speed_multiplier);
         }
+        self.generation = self.generation.saturating_add(speed_multiplier);
     }
 
     /// Moves the ant forward based on its direction with grid wrapping
