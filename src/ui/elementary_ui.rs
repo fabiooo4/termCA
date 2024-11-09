@@ -10,9 +10,7 @@ use ratatui::{
     },
 };
 
-use crate::
-    app::App
-;
+use crate::app::App;
 
 use super::render_help;
 
@@ -64,11 +62,14 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
         // Initialize the grid with the same size as the canvas
         sim.grid
-            .resize(width as usize, height as usize, sim.dead_state);
-        sim.current_line.resize(width as usize, false);
+            .resize(width as usize * 4, height as usize, sim.dead_state);
+        sim.current_line.resize(width as usize * 4, false);
 
         // Set the middle element of the first generation to true
         sim.current_line.insert(width as usize / 2, true);
+
+        // Show the generation 0
+        sim.run(app.speed_multiplier);
     } else if app.elementary_sim.as_ref().unwrap().generation == 0 {
         // If the simulation is already set, the grid still needs to be initialized with the
         // screen size
@@ -76,11 +77,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
         // Initialize the grid with the same size as the canvas
         sim.grid
-            .resize(width as usize, height as usize, sim.dead_state);
-        sim.current_line.resize(width as usize, false);
-
-        // Set the middle element of the first generation to true
-        sim.current_line.insert(width as usize / 2, true);
+            .resize(width as usize * 4, height as usize, sim.dead_state);
+        sim.current_line.resize(width as usize * 4, false);
     }
 
     // From here `app.elementary_sim` is `Some`
@@ -109,32 +107,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         },
     ]);
 
-    /* let top_left_debug = Title::from(Line::from(vec![
-        "(".into(),
-        ant_sim.ants[0].x.to_string().yellow(),
-        "/".into(),
-        ant_sim.grid.width().to_string().red(),
-        ",".into(),
-        ant_sim.ants[0].y.to_string().yellow(),
-        "/".into(),
-        ant_sim.grid.height().to_string().red(),
-        ")".into(),
-        " ".into(),
-        ant_sim.ants[0].direction.to_string().yellow(),
-        " ".into(),
-        ratatui::text::Span::styled(
-            ant_sim.grid.cells[ant_sim.ants[0].y][ant_sim.ants[0].x].to_string(),
-            Style::default().fg(ant_sim.grid.cells[ant_sim.ants[0].y][ant_sim.ants[0].x]),
-        ),
-        " ".into(),
-        "[".into(),
-        width.to_string().red(),
-        ",".into(),
-        height.to_string().red(),
-        "]".into(),
-        " ".into(),
-    ])); */
-
     /////////////////////////////
     // Simulation canvas
     /////////////////////////////
@@ -144,7 +116,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Block::default()
                 .border_type(BorderType::Double)
                 .borders(Borders::ALL)
-                // .title(top_left_debug)
                 .title_top(top_title.centered())
                 .title_bottom(bottom_left_title.left_aligned())
                 .title_bottom(bottom_right_title.right_aligned())
@@ -157,7 +128,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             for (y, row) in sim.grid.cells.iter().enumerate() {
                 for (x, cell) in row.iter().enumerate() {
                     ctx.draw(&Points {
-                        coords: &[(x as f64, y as f64)],
+                        coords: &[(x as f64 - 1., y as f64)],
                         color: *cell,
                     });
                 }

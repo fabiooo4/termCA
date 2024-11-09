@@ -1,5 +1,3 @@
-use std::cmp::{max, min};
-
 use ratatui::style::Color;
 
 use super::Grid;
@@ -31,22 +29,40 @@ impl Default for ElementarySim {
 impl ElementarySim {
     pub fn run(&mut self, speed_multiplier: usize) {
         for _ in 0..speed_multiplier {
-            let height = self.grid.height();
-            for (center_idx, neighbours) in self.current_line.windows(self.neighbours).enumerate() {
-                let rule_idx = bin_to_idx(neighbours);
-                let center_idx = center_idx + self.neighbours / 2;
+            if self.generation == 0 {
+                self.grid.cells[0] = self
+                    .current_line
+                    .iter()
+                    .map(|&b| if b { self.alive_state } else { self.dead_state })
+                    .collect();
+            } else {
+                // Scroll the grid upwards
+                self.grid.cells.pop();
+                self.grid
+                    .cells
+                    .insert(0, vec![self.dead_state; self.grid.width()]);
 
-                // Get the nth bit of the rule
-                let rule = get_bit(self.rule as u32, rule_idx);
+                // Iterate over every window of neighbours
+                for (center_idx, neighbours) in
+                    self.current_line.windows(self.neighbours).enumerate()
+                {
+                    // Get the index of the rule corresponding to the slice of bools
+                    let rule_idx = bin_to_idx(neighbours);
 
-                match rule {
-                    true => self.grid.cells[min(self.generation,height)][center_idx] = self.alive_state,
-                    false => self.grid.cells[min(self.generation,height)][center_idx] = self.dead_state,
+                    let center_idx = center_idx + self.neighbours / 2;
+
+                    // Get the nth bit of the rule
+                    let rule = get_bit(self.rule as u32, rule_idx);
+
+                    match rule {
+                        true => self.grid.cells[0][center_idx] = self.alive_state,
+                        false => self.grid.cells[0][center_idx] = self.dead_state,
+                    }
                 }
             }
 
             // Update the line with the next generation
-            for (i, c) in self.grid.cells[self.generation].iter().enumerate() {
+            for (i, c) in self.grid.cells[0].iter().enumerate() {
                 self.current_line[i] = *c == self.alive_state
             }
 
