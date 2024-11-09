@@ -1,3 +1,5 @@
+use ratatui::layout::{Constraint, Direction, Layout};
+use ratatui::widgets::Clear;
 use ratatui::{layout::Rect, Frame};
 
 use ratatui::{
@@ -10,9 +12,9 @@ use ratatui::{
     },
 };
 
-use crate::app::App;
+use crate::app::{App, InputMode};
 
-use super::render_help;
+use super::{centered_rect_percent, render_help};
 
 pub fn elementary_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -77,13 +79,15 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
         // Initialize the grid with the same size as the canvas
         sim.grid
-            .resize(width as usize * 4, height as usize, sim.dead_state);
-        sim.current_line.resize(width as usize * 4, false);
+            .resize(width as usize * 3, height as usize, sim.dead_state);
+        sim.current_line.resize(width as usize * 3, false);
     }
 
-    // From here `app.elementary_sim` is `Some`
-    let sim = app.elementary_sim.as_ref().unwrap();
 
+    // From here `app.elementary_sim` is `Some`
+    let sim = app.elementary_sim.as_mut().unwrap();
+
+    sim.grid.cells.resize(height as usize, vec![sim.dead_state; sim.grid.width()]);
     /////////////////////////////
     // Border content
     /////////////////////////////
@@ -154,5 +158,86 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     if app.help_screen {
         render_help(frame, help_entries);
+    }
+}
+
+
+pub fn edit(frame: &mut Frame, app: &mut App) {
+    let sim = app.elementary_sim.as_mut().unwrap();
+
+
+    let selected_style = Style::default().yellow().bold();
+    let not_selected_style = Style::default();
+
+    /////////////////////////////
+    // Centered popup
+    /////////////////////////////
+    let edit_area = centered_rect_percent(35, 60, frame.area());
+
+    let edit_area_width = edit_area.width;
+    let edit_area_height = edit_area.height;
+
+    let edit_block = Block::default()
+        .title(" Edit ")
+        .title_alignment(Alignment::Center)
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded);
+
+    frame.render_widget(Clear, edit_area);
+    frame.render_widget(edit_block, edit_area);
+
+    let ruleset_layout_v = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(1),
+            Constraint::Length(3),
+            Constraint::Length(1),
+        ])
+        .split(edit_area);
+
+    let ruleset_layout_h = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Length(1),
+            Constraint::Min(1),
+            Constraint::Length(1),
+        ])
+        .split(ruleset_layout_v[1]);
+
+    let scroll = sim
+        .rule_input
+        .visual_scroll(edit_area_width.saturating_sub(5) as usize);
+
+    let input = Paragraph::new(sim.rule_input.value())
+        .scroll((0, scroll as u16))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(match sim.rule_input_mode {
+                    InputMode::Normal => Style::default(),
+                    InputMode::Editing => Style::default().yellow().bold(),
+                })
+                .title(" Input "),
+        );
+
+    frame.render_widget(input, ruleset_layout_h[1]);
+
+    match sim.rule_input_mode {
+        InputMode::Normal =>
+            // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
+            {}
+
+        InputMode::Editing => {
+            // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
+            frame.set_cursor_position((
+                // Put cursor past the end of the input text
+                ruleset_layout_h[1].x
+                    + ((sim.rule_input.visual_cursor()).saturating_sub(scroll)) as u16
+                    + 1,
+                // Move one line down, from the border to the input line
+                ruleset_layout_h[1].y + 1,
+            ))
+        }
     }
 }

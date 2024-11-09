@@ -1,4 +1,7 @@
 use ratatui::style::Color;
+use tui_input::Input;
+
+use crate::app::InputMode;
 
 use super::Grid;
 
@@ -8,8 +11,11 @@ pub struct ElementarySim {
     pub neighbours: usize,
     pub alive_state: Color,
     pub dead_state: Color,
-    pub generation: usize, // Number of generations
-    pub rule: u8,          // Rules for the ant
+    pub generation: usize,          // Number of generations
+    pub rule: u8,                   // Rules for the ant
+
+    pub rule_input: Input,          // Rules for the ant
+    pub rule_input_mode: InputMode, // Input mode
 }
 
 impl Default for ElementarySim {
@@ -22,6 +28,9 @@ impl Default for ElementarySim {
             dead_state: Color::Reset,
             generation: 0,
             rule: 22,
+
+            rule_input: Input::from(String::from("22")),
+            rule_input_mode: InputMode::Normal,
         }
     }
 }

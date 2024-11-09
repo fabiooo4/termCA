@@ -138,7 +138,10 @@ impl App {
                         self.start_ant_default();
                         self.editing = Some(self.list_items[i].screen);
                     }
-                    Screen::Elementary => todo!("Edit has not been implemented yet"),
+                    Screen::Elementary => {
+                        self.start_elementary_default();
+                        self.editing = Some(self.list_items[i].screen);
+                    }
                     _ => {}
                 }
             }
