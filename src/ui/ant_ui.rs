@@ -225,8 +225,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     /////////////////////////////
 
     let help_entries: Vec<(Line, Line)> = vec![
-        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
         (Line::from("?".yellow()), Line::from("Help")),
+        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
         (Line::from("Space".yellow()), Line::from("Start/Pause")),
         (Line::from("K / ↑".yellow()), Line::from("Speed Up")),
         (Line::from("J / ↓".yellow()), Line::from("Speed Down")),
@@ -533,8 +533,8 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     /////////////////////////////
 
     let help_entries: Vec<(Line, Line)> = vec![
-        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
         (Line::from("?".yellow()), Line::from("Help")),
+        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
         (Line::from("Enter".yellow()), Line::from("Select item")),
         (Line::from("K / ↑".yellow()), Line::from("Previous item")),
         (Line::from("J / ↓".yellow()), Line::from("Next item")),

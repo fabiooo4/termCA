@@ -11,8 +11,8 @@ pub struct ElementarySim {
     pub neighbours: usize,
     pub alive_state: Color,
     pub dead_state: Color,
-    pub generation: usize,          // Number of generations
-    pub rule: u8,                   // Rules for the ant
+    pub generation: usize, // Number of generations
+    pub rule: u8,          // Rules for the ant
 
     pub rule_input: Input,          // Rules for the ant
     pub rule_input_mode: InputMode, // Input mode
@@ -24,7 +24,7 @@ impl Default for ElementarySim {
             grid: Grid::new(),
             current_line: Vec::new(),
             neighbours: 3,
-            alive_state: Color::White,
+            alive_state: Color::Yellow,
             dead_state: Color::Reset,
             generation: 0,
             rule: 22,
@@ -76,6 +76,23 @@ impl ElementarySim {
             }
 
             self.generation = self.generation.saturating_add(1);
+        }
+    }
+
+    pub fn parse_input(&mut self) {
+        let input: Result<u8, std::num::ParseIntError> = match !self.rule_input.value().is_empty() {
+            true => self.rule_input.value().parse(),
+            false => Ok(0),
+        };
+
+        match input {
+            Ok(n) => {
+                self.rule = n;
+            }
+            Err(_) => {
+                self.rule_input = self.rule_input.clone().with_value(255.to_string());
+                self.rule = 255;
+            }
         }
     }
 }

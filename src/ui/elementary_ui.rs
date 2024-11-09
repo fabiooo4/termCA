@@ -14,7 +14,7 @@ use ratatui::{
 
 use crate::app::{App, InputMode};
 
-use super::{centered_rect_percent, render_help};
+use super::{centered_rect_length, centered_rect_percent, render_help};
 
 pub fn elementary_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -81,6 +81,12 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         sim.grid
             .resize(width as usize * 3, height as usize, sim.dead_state);
         sim.current_line.resize(width as usize * 3, false);
+
+        // Set the middle element of the first generation to true
+        sim.current_line.insert(width as usize / 2, true);
+
+        // Show the generation 0
+        sim.run(app.speed_multiplier);
     }
 
 
@@ -148,8 +154,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     /////////////////////////////
 
     let help_entries: Vec<(Line, Line)> = vec![
-        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
         (Line::from("?".yellow()), Line::from("Help")),
+        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
         (Line::from("Space".yellow()), Line::from("Start/Pause")),
         (Line::from("K / ↑".yellow()), Line::from("Speed Up")),
         (Line::from("J / ↓".yellow()), Line::from("Speed Down")),
@@ -165,17 +171,12 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 pub fn edit(frame: &mut Frame, app: &mut App) {
     let sim = app.elementary_sim.as_mut().unwrap();
 
-
-    let selected_style = Style::default().yellow().bold();
-    let not_selected_style = Style::default();
-
     /////////////////////////////
     // Centered popup
     /////////////////////////////
-    let edit_area = centered_rect_percent(35, 60, frame.area());
+    let edit_area = centered_rect_length(35, 5, frame.area());
 
     let edit_area_width = edit_area.width;
-    let edit_area_height = edit_area.height;
 
     let edit_block = Block::default()
         .title(" Edit ")
@@ -239,5 +240,20 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                 ruleset_layout_h[1].y + 1,
             ))
         }
+    }
+
+    /////////////////////////////
+    // Help screen
+    /////////////////////////////
+
+    let help_entries: Vec<(Line, Line)> = vec![
+        (Line::from("?".yellow()), Line::from("Help")),
+        (Line::from("Q / Esc".yellow()), Line::from("Stop typing")),
+        (Line::from("Enter".yellow()), Line::from("Start typing")),
+        (Line::from("Space".yellow()), Line::from("Start simulation")),
+    ];
+
+    if app.help_screen {
+        render_help(frame, help_entries);
     }
 }

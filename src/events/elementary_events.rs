@@ -2,7 +2,7 @@ use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::style::Color;
 use tui_input::backend::crossterm::EventHandler;
 
-use crate::app::{App, InputMode, Screen};
+use crate::{app::{App, InputMode, Screen}, simulations::elementary::ElementarySim};
 
 pub fn main(key: KeyEvent, app: &mut App) {
     match key.code {
@@ -79,6 +79,8 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                     }
                     _ => key,
                 }));
+
+                sim.parse_input();
             }
         },
     }
