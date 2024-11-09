@@ -2,7 +2,10 @@ use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::style::Color;
 use tui_input::backend::crossterm::EventHandler;
 
-use crate::{app::{App, InputMode, Screen}, simulations::elementary::ElementarySim};
+use crate::{
+    app::{App, InputMode, Screen},
+    simulations::elementary::ElementarySim,
+};
 
 pub fn main(key: KeyEvent, app: &mut App) {
     match key.code {
@@ -84,4 +87,17 @@ pub fn edit(key: KeyEvent, app: &mut App) {
             }
         },
     }
+}
+
+pub fn resize(new_width: u16, new_height: u16, app: &mut App) {
+    let new_width: usize = new_width as usize;
+    let new_height: usize = (new_height as usize - 2) * 2;
+
+    let sim = app.elementary_sim.as_mut().unwrap();
+
+    // Resize the grid
+    sim.grid.resize(new_width, new_height, Color::Reset);
+
+    // Resize the line
+    sim.current_line.resize(new_width, false);
 }

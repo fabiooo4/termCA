@@ -54,7 +54,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     }
 
     // Initialize the simulation if it's not already
-    let width = f64::from(frame.area().width - 2);
+    let width = f64::from(frame.area().width - 1);
     let height = f64::from((frame.area().height - 2) * 2);
 
     if app.elementary_sim.is_none() {
@@ -64,8 +64,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
         // Initialize the grid with the same size as the canvas
         sim.grid
-            .resize(width as usize * 4, height as usize, sim.dead_state);
-        sim.current_line.resize(width as usize * 4, false);
+            .resize(width as usize, height as usize, sim.dead_state);
+        sim.current_line.resize(width as usize, false);
 
         // Set the middle element of the first generation to true
         sim.current_line.insert(width as usize / 2, true);
@@ -79,8 +79,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
         // Initialize the grid with the same size as the canvas
         sim.grid
-            .resize(width as usize * 3, height as usize, sim.dead_state);
-        sim.current_line.resize(width as usize * 3, false);
+            .resize(width as usize, height as usize, sim.dead_state);
+        sim.current_line.resize(width as usize, false);
 
         // Set the middle element of the first generation to true
         sim.current_line.insert(width as usize / 2, true);
@@ -93,7 +93,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // From here `app.elementary_sim` is `Some`
     let sim = app.elementary_sim.as_mut().unwrap();
 
-    sim.grid.cells.resize(height as usize, vec![sim.dead_state; sim.grid.width()]);
     /////////////////////////////
     // Border content
     /////////////////////////////

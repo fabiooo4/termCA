@@ -9,6 +9,7 @@ use app::Screen;
 use crossterm::event::{self, Event};
 use events::{ant_events, elementary_events, is_event_available, main_events};
 use ratatui::DefaultTerminal;
+use ui::elementary_ui::elementary_screen;
 use std::io::{self};
 
 fn main() -> io::Result<()> {
@@ -56,8 +57,10 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
 
         match event::read()? {
             Event::Resize(new_width, new_height) => {
-                if let Screen::Ant = app.current_screen {
-                    ant_events::resize(new_width, new_height, app)
+                match app.current_screen {
+                    Screen::Ant => ant_events::resize(new_width, new_height, app),
+                    Screen::Elementary => elementary_events::resize(new_width, new_height, app),
+                    _ => (),
                 }
             }
 
