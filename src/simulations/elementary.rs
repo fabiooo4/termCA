@@ -1,5 +1,5 @@
 use ratatui::style::Color;
-use rayon::{iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator}, slice::ParallelSlice};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use tui_input::Input;
 
 use crate::app::InputMode;

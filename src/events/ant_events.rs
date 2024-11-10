@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::style::Color;
 use tui_input::backend::crossterm::EventHandler;
@@ -21,7 +19,9 @@ pub fn main(key: KeyEvent, app: &mut App) {
         KeyCode::Char(' ') => app.is_running = !app.is_running,
         KeyCode::Char('?') => app.help_screen = !app.help_screen,
         // Run the simulation one step at a time
-        KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => app.ant_sim.as_mut().unwrap().run(app.speed_multiplier),
+        KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
+            app.ant_sim.as_mut().unwrap().run(app.speed_multiplier)
+        }
         KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => app.speed_increase(),
         KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => app.speed_decrease(),
         _ => {}

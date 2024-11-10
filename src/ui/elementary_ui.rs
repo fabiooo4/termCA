@@ -14,7 +14,7 @@ use ratatui::{
 
 use crate::app::{App, InputMode};
 
-use super::{centered_rect_length, centered_rect_percent, render_help};
+use super::{centered_rect_length, render_help};
 
 pub fn elementary_screen(frame: &mut Frame, app: &mut App) {
     if frame

@@ -9,7 +9,6 @@ use app::Screen;
 use crossterm::event::{self, Event};
 use events::{ant_events, elementary_events, is_event_available, main_events};
 use ratatui::DefaultTerminal;
-use ui::elementary_ui::elementary_screen;
 use std::io::{self};
 
 fn main() -> io::Result<()> {

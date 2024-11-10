@@ -2,10 +2,9 @@ use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::style::Color;
 use tui_input::backend::crossterm::EventHandler;
 
-use crate::{
-    app::{App, InputMode, Screen},
-    simulations::elementary::ElementarySim,
-};
+use crate::
+    app::{App, InputMode, Screen}
+;
 
 pub fn main(key: KeyEvent, app: &mut App) {
     match key.code {
