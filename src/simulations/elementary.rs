@@ -1,4 +1,5 @@
 use ratatui::style::Color;
+use rayon::{iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator}, slice::ParallelSlice};
 use tui_input::Input;
 
 use crate::app::InputMode;
@@ -41,7 +42,7 @@ impl ElementarySim {
             if self.generation == 0 {
                 self.grid.cells[0] = self
                     .current_line
-                    .iter()
+                    .par_iter()
                     .map(|&b| if b { self.alive_state } else { self.dead_state })
                     .collect();
             } else {
@@ -50,6 +51,7 @@ impl ElementarySim {
                 self.grid
                     .cells
                     .insert(0, vec![self.dead_state; self.grid.width()]);
+
 
                 // Iterate over every window of neighbours
                 for (center_idx, neighbours) in
