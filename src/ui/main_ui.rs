@@ -76,7 +76,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Constraint::Length(4), // Title
             Constraint::Length(1), // Subtitle
             Constraint::Max(3),    // Spacing
-            Constraint::Min(8),    // List block
+            Constraint::Max(10),    // List block
             Constraint::Min(0),    // Spacing
         ])
         .split(frame.area());
@@ -172,6 +172,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .ceil() as usize;
 
     app.scroll_state = app.scroll_state.content_length(offsets_number);
+
+    app.scroll_state = app.scroll_state.position(app.list_state.offset());
 
     if horizontal_layout[1].height - 2 < app.list_items.len() as u16 * 2 {
         frame.render_stateful_widget(

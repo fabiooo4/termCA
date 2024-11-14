@@ -1,5 +1,6 @@
 pub mod ant;
 pub mod elementary;
+pub mod game_of_life;
 
 
 use ratatui::style::Color;
@@ -82,6 +83,7 @@ impl Display for Direction {
 }
 
 /// Struct that represents a grid of cells
+#[derive(Clone)]
 pub struct Grid {
     pub cells: Vec<Vec<Color>>,
 }

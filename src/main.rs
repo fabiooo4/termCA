@@ -4,12 +4,12 @@ mod simulations;
 mod ui;
 
 use crate::app::App;
-use crate::ui::ui;
 use app::Screen;
 use crossterm::event::{self, Event};
-use events::{ant_events, elementary_events, is_event_available, main_events};
+use events::{ant_events, elementary_events, game_of_life_events, is_event_available, main_events};
 use ratatui::DefaultTerminal;
 use std::io::{self};
+use ui::{ant_ui, elementary_ui, game_of_life_ui, main_ui};
 
 fn main() -> io::Result<()> {
     let mut terminal = ratatui::init();
@@ -25,7 +25,13 @@ fn main() -> io::Result<()> {
 fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
     loop {
         // Render
-        terminal.draw(|f| ui(f, app))?;
+        terminal.draw(|f| match app.current_screen {
+            Screen::Main => main_ui::main_screen(f, app),
+            Screen::Ant => ant_ui::ant_screen(f, app),
+            Screen::Elementary => elementary_ui::elementary_screen(f, app),
+            Screen::GameOfLife => game_of_life_ui::gol_screen(f, app),
+            _ => {}
+        })?;
 
         // Event handling
         // Always running
@@ -33,17 +39,20 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
             Screen::Exit => break Ok(()),
             Screen::Ant => {
                 if app.is_running && !app.help_screen {
-                    // Run Langton's Ant
                     app.ant_sim.as_mut().unwrap().run(app.speed_multiplier);
                 }
             }
             Screen::Elementary => {
                 if app.is_running && !app.help_screen {
-                    // Run Elementary CA
                     app.elementary_sim
                         .as_mut()
                         .unwrap()
                         .run(app.speed_multiplier);
+                }
+            }
+            Screen::GameOfLife => {
+                if app.is_running && !app.help_screen {
+                    app.gol_sim.as_mut().unwrap().run(app.speed_multiplier);
                 }
             }
             _ => {}
@@ -55,13 +64,12 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
         }
 
         match event::read()? {
-            Event::Resize(new_width, new_height) => {
-                match app.current_screen {
-                    Screen::Ant => ant_events::resize(new_width, new_height, app),
-                    Screen::Elementary => elementary_events::resize(new_width, new_height, app),
-                    _ => (),
-                }
-            }
+            Event::Resize(new_width, new_height) => match app.current_screen {
+                Screen::Ant => ant_events::resize(new_width, new_height, app),
+                Screen::Elementary => elementary_events::resize(new_width, new_height, app),
+                Screen::GameOfLife => game_of_life_events::resize(new_width, new_height, app),
+                _ => (),
+            },
 
             Event::Key(key) => {
                 if key.kind != event::KeyEventKind::Press {
@@ -80,6 +88,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                         Screen::Ant => ant_events::edit(key, app),
                         Screen::AntEdit(ant_idx) => ant_events::edit_ant(key, app, ant_idx),
                         Screen::Elementary => elementary_events::edit(key, app),
+                        Screen::GameOfLife => game_of_life_events::edit(key, app),
                         _ => {}
                     }
                 } else {
@@ -87,6 +96,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                         Screen::Main => main_events::main(key, app),
                         Screen::Ant => ant_events::main(key, app),
                         Screen::Elementary => elementary_events::main(key, app),
+                        Screen::GameOfLife => game_of_life_events::main(key, app),
                         _ => {}
                     }
                 }

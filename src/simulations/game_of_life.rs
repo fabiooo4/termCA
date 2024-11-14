@@ -1,0 +1,119 @@
+use ratatui::style::Color;
+
+use super::Grid;
+
+pub struct GolSim {
+    pub grid: Grid, // Grid of cells
+    pub alive_state: Color,
+    pub dead_state: Color,
+    pub generation: usize, // Number of generations
+}
+
+impl Default for GolSim {
+    fn default() -> Self {
+        Self {
+            grid: Grid::new(),
+            alive_state: Color::Yellow,
+            dead_state: Color::Reset,
+            generation: Default::default(),
+        }
+    }
+}
+
+impl GolSim {
+    pub fn run(&mut self, speed_multiplier: usize) {
+        for _ in 0..speed_multiplier {
+            let grid = self.grid.clone();
+            for y in 0..grid.height() {
+                for x in 0..grid.width() {
+                    let alive_count = count_alive_neighbours(&grid, x, y, self.alive_state);
+                    let cell = &mut self.grid.cells[y][x];
+
+                    // Game of life rules
+                    if *cell == self.alive_state {
+                        if alive_count < 2 {
+                            *cell = self.dead_state;
+                        } else if alive_count <= 3 {
+                            *cell = self.alive_state;
+                        } else if alive_count > 3 {
+                            *cell = self.dead_state;
+                        }
+                    } else if alive_count == 3 {
+                        *cell = self.alive_state;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Counts the alive neighbours of a cell based on its position and the alive state
+fn count_alive_neighbours(grid: &Grid, x: usize, y: usize, alive_state: Color) -> usize {
+    let left = grid.cells[y][match x as i32 - 1 < 0 {
+        true => grid.width()-1,
+        false => x - 1,
+    }];
+    let right = grid.cells[y][match x + 1 >= grid.width() {
+        true => 0,
+        false => x + 1,
+    }];
+
+    let bottom = grid.cells[match y as i32 - 1 < 0 {
+        true => grid.height()-1,
+        false => y - 1,
+    }][x];
+    let top = grid.cells[match y + 1 >= grid.height() {
+        true => 0,
+        false => y + 1,
+    }][x];
+
+    let top_right = grid.cells[match y + 1 >= grid.height() {
+        true => 0,
+        false => y + 1,
+    }][match x + 1 >= grid.width() {
+        true => 0,
+        false => x + 1,
+    }];
+    let top_left = grid.cells[match y + 1 >= grid.height() {
+        true => 0,
+        false => y + 1,
+    }][match x as i32 - 1 < 0 {
+        true => grid.width()-1,
+        false => x - 1,
+    }];
+
+    let bottom_right = grid.cells[match y as i32 - 1 < 0 {
+        true => grid.height()-1,
+        false => y - 1,
+    }][match x + 1 >= grid.width() {
+        true => 0,
+        false => x + 1,
+    }];
+    let bottom_left = grid.cells[match y as i32 - 1 < 0 {
+        true => grid.height()-1,
+        false => y - 1,
+    }][match x as i32 - 1 < 0 {
+        true => grid.width()-1,
+        false => x - 1,
+    }];
+
+    let neighbours = [
+        top_left,
+        top,
+        top_right,
+        left,
+        right,
+        bottom_left,
+        bottom,
+        bottom_right,
+    ];
+
+    let mut count = 0;
+    for cell in neighbours {
+        if cell == alive_state {
+            count += 1;
+        }
+    }
+
+    count
+}

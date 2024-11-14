@@ -1,4 +1,4 @@
-use crate::simulations::{ant::AntSim, elementary::ElementarySim};
+use crate::simulations::{ant::AntSim, elementary::ElementarySim, game_of_life::GolSim};
 use ratatui::{
     symbols::Marker,
     widgets::{ScrollbarState, TableState},
@@ -13,6 +13,7 @@ pub enum Screen {
     Ant,
     AntEdit(usize), // Screen for editing the ants' position and direction
     Elementary,
+    GameOfLife,
 }
 
 pub enum InputMode {
@@ -38,10 +39,10 @@ pub struct App {
     pub list_state: TableState, // State of the list
     pub scroll_state: ScrollbarState,
 
-    /// Ant simulation data (optional because it's only used in the Ant
-    /// screen)
+    /// Simulation data (optional because it's only used in one screen)
     pub ant_sim: Option<AntSim>,
     pub elementary_sim: Option<ElementarySim>,
+    pub gol_sim: Option<GolSim>,
 }
 
 impl App {
@@ -49,12 +50,16 @@ impl App {
     pub fn new() -> Self {
         let simulations_list = vec![
             SimulationItem {
+                label: String::from("Elementary CA\n "),
+                screen: Screen::Elementary,
+            },
+            SimulationItem {
                 label: String::from("Langton's Ant\n "),
                 screen: Screen::Ant,
             },
             SimulationItem {
-                label: String::from("Elementary CA\n "),
-                screen: Screen::Elementary,
+                label: String::from("Game of Life\n "),
+                screen: Screen::GameOfLife,
             },
             SimulationItem {
                 label: String::from("Exit\n "),
@@ -76,6 +81,7 @@ impl App {
 
             ant_sim: None,
             elementary_sim: None,
+            gol_sim: None,
         }
     }
 
@@ -142,6 +148,10 @@ impl App {
                         self.start_elementary_default();
                         self.editing = Some(self.list_items[i].screen);
                     }
+                    Screen::GameOfLife => {
+                        self.start_gol_default();
+                        self.editing = Some(self.list_items[i].screen);
+                    }
                     _ => {}
                 }
             }
@@ -152,6 +162,8 @@ impl App {
     pub fn stop_all(&mut self) {
         self.ant_sim = None;
         self.elementary_sim = None;
+        self.gol_sim = None;
+
         self.is_running = false;
         self.speed = Duration::from_millis(80);
         self.speed_multiplier = 1;
@@ -167,6 +179,11 @@ impl App {
     pub fn start_elementary_default(&mut self) {
         self.stop_all();
         self.elementary_sim = Some(ElementarySim::default());
+    }
+
+    pub fn start_gol_default(&mut self) {
+        self.stop_all();
+        self.gol_sim = Some(GolSim::default());
     }
 
     // List handling

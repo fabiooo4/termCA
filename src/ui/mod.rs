@@ -1,6 +1,7 @@
 pub mod main_ui;
 pub mod ant_ui;
 pub mod elementary_ui;
+pub mod game_of_life_ui;
 
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -9,19 +10,6 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Clear, Paragraph},
     Frame,
 };
-
-use crate::app::{App, Screen};
-
-pub fn ui(frame: &mut Frame, app: &mut App) {
-    // Render widgets
-    match app.current_screen {
-        Screen::Main => main_ui::main_screen(frame, app),
-        Screen::Ant => ant_ui::ant_screen(frame, app),
-        Screen::Elementary => elementary_ui::elementary_screen(frame, app),
-
-        _ => {}
-    }
-}
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`
 pub fn centered_rect_percent(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
