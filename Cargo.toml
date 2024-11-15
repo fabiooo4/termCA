@@ -2,6 +2,12 @@
 name = "termCA"
 version = "0.1.0"
 edition = "2021"
+description = "Interactive TUI Cellular Automata simulator"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/fabiooo4/termCA"
+repository = "https://github.com/fabiooo4/termCA"
+keywords = ["tui", "cellular", "automata", "automaton", "cli", "simulation"]
 
 [dependencies]
 crossterm = "0.28.1"
