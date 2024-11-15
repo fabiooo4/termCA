@@ -7,7 +7,8 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/fabiooo4/termCA"
 repository = "https://github.com/fabiooo4/termCA"
-keywords = ["tui", "cellular", "automata", "automaton", "cli", "simulation"]
+keywords = ["tui", "cellular", "automata", "cli", "simulation"]
+categories = ["games", "simulation"]
 
 [dependencies]
 crossterm = "0.28.1"

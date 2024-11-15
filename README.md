@@ -5,7 +5,7 @@ automata in the terminal and allows you to interact with the simulation in real
 time.
 
 ## Simulations
-The current version supports the following simulations:
+The latest version supports the following simulations:
 - [Elementary Cellular Automata](https://en.wikipedia.org/wiki/Elementary_cellular_automaton)
 - [Langton's Ant](https://en.wikipedia.org/wiki/Langton%27s_ant)
 - [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
