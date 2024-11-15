@@ -1,5 +1,6 @@
-# Cellular automata simulator for the terminal
-This is a TUI simulator for cellular automata written in Rust. It displays the
+![logo](https://github.com/user-attachments/assets/7d191463-03d3-4047-82db-623dbb0132bd)
+# TermCA
+TermCA is a TUI simulator for cellular automata written in Rust. It displays the
 automata in the terminal and allows you to interact with the simulation in real
 time.
 
