@@ -272,7 +272,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             ctx.draw(&Points {
                 coords: &[(sim.edit_cursor.x as f64 - 1., sim.edit_cursor.y as f64)],
                 color: if sim.grid.cells[sim.edit_cursor.y][sim.edit_cursor.x] == sim.alive_state {
-                    Color::LightYellow
+                    Color::LightRed
                 } else {
                     sim.edit_cursor.color
                 },

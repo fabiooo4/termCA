@@ -160,6 +160,7 @@ pub fn edit(key: KeyEvent, app: &mut App) {
 
 pub fn edit_ant(key: KeyEvent, app: &mut App, ant_idx: usize) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
+    let speed_toggle = 2;
 
     match key.code {
         KeyCode::Char('?') => app.help_screen = !app.help_screen,
@@ -168,20 +169,40 @@ pub fn edit_ant(key: KeyEvent, app: &mut App, ant_idx: usize) {
             app.editing = Some(Screen::Ant)
         }
 
-        KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => {
+        KeyCode::Up | KeyCode::Char('k') => {
             ant_sim.ants[ant_idx].change_position(Direction::Up, &ant_sim.grid)
         }
+        KeyCode::Char('K') => {
+            for _ in 0..speed_toggle {
+                ant_sim.ants[ant_idx].change_position(Direction::Up, &ant_sim.grid)
+            }
+        }
 
-        KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
+        KeyCode::Down | KeyCode::Char('j') => {
             ant_sim.ants[ant_idx].change_position(Direction::Down, &ant_sim.grid)
         }
-
-        KeyCode::Right | KeyCode::Char('l') | KeyCode::Char('L') => {
-            ant_sim.ants[ant_idx].change_position(Direction::Right, &ant_sim.grid)
+        KeyCode::Char('J') => {
+            for _ in 0..speed_toggle {
+                ant_sim.ants[ant_idx].change_position(Direction::Down, &ant_sim.grid)
+            }
         }
 
-        KeyCode::Left | KeyCode::Char('h') | KeyCode::Char('H') => {
+        KeyCode::Right | KeyCode::Char('l') => {
+            ant_sim.ants[ant_idx].change_position(Direction::Right, &ant_sim.grid)
+        }
+        KeyCode::Char('L') => {
+            for _ in 0..speed_toggle {
+                ant_sim.ants[ant_idx].change_position(Direction::Right, &ant_sim.grid)
+            }
+        }
+
+        KeyCode::Left | KeyCode::Char('h') => {
             ant_sim.ants[ant_idx].change_position(Direction::Left, &ant_sim.grid)
+        }
+        KeyCode::Char('H') => {
+            for _ in 0..speed_toggle {
+                ant_sim.ants[ant_idx].change_position(Direction::Left, &ant_sim.grid)
+            }
         }
 
         KeyCode::Char('r') => {
