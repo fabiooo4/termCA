@@ -165,6 +165,7 @@ impl App {
         self.gol_sim = None;
 
         self.is_running = false;
+        self.editing = None;
         self.speed = Duration::from_millis(80);
         self.speed_multiplier = 1;
     }

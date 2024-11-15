@@ -14,7 +14,7 @@ use tui_big_text::{BigText, PixelSize};
 
 use crate::app::{App, Screen};
 
-use super::{ant_ui, elementary_ui, render_help};
+use super::{ant_ui, elementary_ui, game_of_life_ui, render_help};
 
 pub fn main_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -214,6 +214,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Screen::Ant => ant_ui::edit(frame, app),
             Screen::AntEdit(ant_idx) => ant_ui::edit_ant(frame, app, ant_idx),
             Screen::Elementary => elementary_ui::edit(frame, app),
+            Screen::GameOfLife => game_of_life_ui::edit(frame, app),
             _ => {}
         }
     }

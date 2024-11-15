@@ -1,8 +1,6 @@
 use rand::Rng;
-use ratatui::{
-    layout::Rect,
-    Frame,
-};
+use ratatui::style::Color;
+use ratatui::{layout::Rect, Frame};
 
 use ratatui::{
     layout::Alignment,
@@ -14,9 +12,7 @@ use ratatui::{
     },
 };
 
-use crate::
-    app::App
-;
+use crate::app::App;
 
 use super::render_help;
 
@@ -76,7 +72,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
         for _ in 0..num_cells {
             let x = rng.gen_range((width * 0.1) as usize..(width - width * 0.1) as usize) as usize;
-            let y = 
+            let y =
                 rng.gen_range((height * 0.1) as usize..(height - height * 0.1) as usize) as usize;
             sim.grid.cells[y][x] = sim.alive_state;
         }
@@ -97,7 +93,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     // Border content
     /////////////////////////////
 
-    let top_title = Line::from(vec![" Langton's Ant ".yellow()]);
+    let top_title = Line::from(vec![" Conway's Game of Life ".yellow()]);
 
     let bottom_left_title = Line::from(vec![
         " Iteration: ".into(),
@@ -125,7 +121,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Block::default()
                 .border_type(BorderType::Double)
                 .borders(Borders::ALL)
-                // .title(top_left_debug)
                 .title_top(top_title.centered())
                 .title_bottom(bottom_left_title.left_aligned())
                 .title_bottom(bottom_right_title.right_aligned())
@@ -216,13 +211,22 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     sim.grid
         .resize(width as usize, height as usize, sim.dead_state);
 
+    // Wrap cursor position
+    if sim.edit_cursor.x > width as usize {
+        sim.edit_cursor.x = width as usize / 2;
+    }
+
+    if sim.edit_cursor.y > height as usize {
+        sim.edit_cursor.y = height as usize / 2;
+    }
+
     let sim = app.gol_sim.as_ref().unwrap();
 
     /////////////////////////////
     // Border content
     /////////////////////////////
 
-    let top_title = Line::from(" Editing starting grid ".yellow());
+    let top_title = Line::from(" Editing Conway's Game of Life ".yellow());
 
     let bottom_left_title = Line::from(vec![
         " Generation: ".into(),
@@ -234,7 +238,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     let bottom_right_title = Line::from(vec![
         " Position: ".into(),
-        format!("(x: {}, y: {}) ", 0, 0).into(),
+        format!("(x: {}, y: {}) ", sim.edit_cursor.x, sim.edit_cursor.y).into(),
     ]);
 
     /////////////////////////////
@@ -263,6 +267,17 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
                     });
                 }
             }
+
+            // Draw cursor
+            ctx.draw(&Points {
+                coords: &[(sim.edit_cursor.x as f64 - 1., sim.edit_cursor.y as f64)],
+                color: if sim.grid.cells[sim.edit_cursor.y][sim.edit_cursor.x] == sim.alive_state {
+                    Color::LightYellow
+                } else {
+                    sim.edit_cursor.color
+                },
+            });
+
         })
         .x_bounds([0., f64::from((frame.area().width - 2) - 1)])
         .y_bounds([0., f64::from(((frame.area().height - 2) * 2) - 1)]);
@@ -276,12 +291,12 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     let help_entries: Vec<(Line, Line)> = vec![
         (Line::from("?".yellow()), Line::from("Help")),
         (Line::from("Q / Esc".yellow()), Line::from("Quit")),
-        (Line::from("Enter".yellow()), Line::from("Toggle cell")),
+        (Line::from("Space".yellow()), Line::from("Toggle cell")),
         (Line::from("K / ↑".yellow()), Line::from("Move up")),
         (Line::from("J / ↓".yellow()), Line::from("Move down")),
         (Line::from("L / →".yellow()), Line::from("Move right")),
         (Line::from("H / ←".yellow()), Line::from("Move left")),
-        (Line::from("Space".yellow()), Line::from("Start simulation")),
+        (Line::from("Enter".yellow()), Line::from("Start simulation")),
     ];
 
     if app.help_screen {

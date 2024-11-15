@@ -1,12 +1,14 @@
 use ratatui::style::Color;
 
-use super::Grid;
+use super::{ant::Ant, Direction, Grid};
 
 pub struct GolSim {
     pub grid: Grid, // Grid of cells
     pub alive_state: Color,
     pub dead_state: Color,
     pub generation: usize, // Number of generations
+
+    pub edit_cursor: Ant, // Reuse of the ant as a cursor
 }
 
 impl Default for GolSim {
@@ -16,6 +18,13 @@ impl Default for GolSim {
             alive_state: Color::Yellow,
             dead_state: Color::Reset,
             generation: Default::default(),
+
+            edit_cursor: Ant {
+                x: usize::MAX,
+                y: usize::MAX,
+                color: Color::Red,
+                direction: Direction::Up,
+            },
         }
     }
 }
@@ -44,13 +53,23 @@ impl GolSim {
                 }
             }
         }
+        self.generation = self.generation.saturating_add(speed_multiplier);
+    }
+
+    pub fn toggle_cell(&mut self, x: usize, y: usize) {
+        let cell = &mut self.grid.cells[y][x];
+        if *cell == self.alive_state {
+            *cell = self.dead_state;
+        } else {
+            *cell = self.alive_state;
+        }
     }
 }
 
 /// Counts the alive neighbours of a cell based on its position and the alive state
 fn count_alive_neighbours(grid: &Grid, x: usize, y: usize, alive_state: Color) -> usize {
     let left = grid.cells[y][match x as i32 - 1 < 0 {
-        true => grid.width()-1,
+        true => grid.width() - 1,
         false => x - 1,
     }];
     let right = grid.cells[y][match x + 1 >= grid.width() {
@@ -59,7 +78,7 @@ fn count_alive_neighbours(grid: &Grid, x: usize, y: usize, alive_state: Color) -
     }];
 
     let bottom = grid.cells[match y as i32 - 1 < 0 {
-        true => grid.height()-1,
+        true => grid.height() - 1,
         false => y - 1,
     }][x];
     let top = grid.cells[match y + 1 >= grid.height() {
@@ -78,22 +97,22 @@ fn count_alive_neighbours(grid: &Grid, x: usize, y: usize, alive_state: Color) -
         true => 0,
         false => y + 1,
     }][match x as i32 - 1 < 0 {
-        true => grid.width()-1,
+        true => grid.width() - 1,
         false => x - 1,
     }];
 
     let bottom_right = grid.cells[match y as i32 - 1 < 0 {
-        true => grid.height()-1,
+        true => grid.height() - 1,
         false => y - 1,
     }][match x + 1 >= grid.width() {
         true => 0,
         false => x + 1,
     }];
     let bottom_left = grid.cells[match y as i32 - 1 < 0 {
-        true => grid.height()-1,
+        true => grid.height() - 1,
         false => y - 1,
     }][match x as i32 - 1 < 0 {
-        true => grid.width()-1,
+        true => grid.width() - 1,
         false => x - 1,
     }];
 
