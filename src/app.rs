@@ -3,6 +3,7 @@ use ratatui::{
     symbols::Marker,
     widgets::{ScrollbarState, TableState},
 };
+use tui_widget_list::ListState;
 use std::time::Duration;
 
 /// All the possible screens in the application
@@ -26,15 +27,33 @@ pub struct SimulationItem {
     pub screen: Screen,
 }
 
+#[derive(PartialEq, Eq, Default)]
+pub enum EditTab {
+    #[default]
+    Setting,
+    Content,
+}
+
+impl EditTab {
+    fn next(&mut self) {
+        match self {
+            Self::Setting => *self = EditTab::Content,
+            Self::Content => *self = EditTab::Setting,
+        }
+    }
+}
+
 /// Struct that holds the application data
 pub struct App {
     pub current_screen: Screen,
     pub editing: Option<Screen>,
+    pub selected_edit_tab: Option<EditTab>,
     pub help_screen: bool,
     pub is_running: bool,        // Pause/Resume
     pub speed: Duration,         // Delay between each generation
     pub speed_multiplier: usize, // Number of generations per frame
     pub marker: Marker,          // Character to draw the cells
+
     pub list_items: Vec<SimulationItem>,
     pub list_state: TableState, // State of the list
     pub scroll_state: ScrollbarState,
@@ -71,6 +90,7 @@ impl App {
             help_screen: false,
             current_screen: Screen::Main,
             editing: None,
+            selected_edit_tab: None,
             is_running: false,
             speed: Duration::from_millis(80),
             speed_multiplier: 1,

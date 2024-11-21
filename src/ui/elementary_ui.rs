@@ -1,5 +1,6 @@
 use ratatui::layout::{Constraint, Direction, Layout};
-use ratatui::widgets::Clear;
+use ratatui::style::Color;
+use ratatui::widgets::{Clear, Padding};
 use ratatui::{layout::Rect, Frame};
 
 use ratatui::{
@@ -11,10 +12,12 @@ use ratatui::{
         Block, BorderType, Borders, Paragraph,
     },
 };
+use tui_widget_list::{ListBuilder, ListView};
 
-use crate::app::{App, InputMode};
+use crate::app::{App, EditTab, InputMode};
+use crate::simulations::elementary::ElementarySettings;
 
-use super::{centered_rect_length, render_help};
+use super::{centered_rect_length, render_help, ListItemContainer};
 
 pub fn elementary_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -88,7 +91,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         // Show the generation 0
         sim.run(app.speed_multiplier);
     }
-
 
     // From here `app.elementary_sim` is `Some`
     let sim = app.elementary_sim.as_mut().unwrap();
@@ -166,7 +168,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     }
 }
 
-
 pub fn edit(frame: &mut Frame, app: &mut App) {
     let sim = app.elementary_sim.as_mut().unwrap();
 
@@ -178,13 +179,34 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     let edit_area_width = edit_area.width;
 
     let edit_block = Block::default()
-        .title(" Edit ")
+        .title(" Editing Elementary CA")
         .title_alignment(Alignment::Center)
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded);
+        .borders(Borders::NONE);
 
     frame.render_widget(Clear, edit_area);
     frame.render_widget(edit_block, edit_area);
+
+    let [left, right] =
+        Layout::horizontal([Constraint::Percentage(25), Constraint::Min(0)]).areas(frame.area());
+
+    let selected_block = ratatui::widgets::Block::default()
+        .borders(Borders::ALL)
+        .border_type(BorderType::Double)
+        .style(Style::default().fg(Color::White));
+
+    let disabled_block = ratatui::widgets::Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default().fg(Color::Gray));
+
+    // Scroll settings selection
+    let block = match app.selected_edit_tab.unwrap() {
+        EditTab::Setting => selected_block,
+        _ => disabled_block
+    };
+
+    ElementarySettingsList::new()
+        .block(block)
+        .render(left, buf, &mut state.variant_state);
 
     let ruleset_layout_v = Layout::default()
         .direction(Direction::Vertical)
@@ -254,5 +276,24 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
 
     if app.help_screen {
         render_help(frame, help_entries);
+    }
+}
+
+pub struct ElementarySettingsList;
+impl ElementarySettingsList {
+    pub fn new<'a>() -> ListView<'a, ListItemContainer<'a, Line<'a>>> {
+        let builder = ListBuilder::new(move |context| {
+            let config = ElementarySettings::from_index(context.index);
+            let line = Line::from(format!("{config}")).alignment(Alignment::Center);
+            let mut item = ListItemContainer::new(line, Padding::vertical(1));
+
+            if context.is_selected {
+                item = item.bg(Color::Yellow).fg(Color::Black);
+            };
+
+            return (item, 3);
+        });
+
+        return ListView::new(builder, ElementarySettings::COUNT);
     }
 }

@@ -1,13 +1,14 @@
-pub mod main_ui;
 pub mod ant_ui;
 pub mod elementary_ui;
 pub mod game_of_life_ui;
+pub mod main_ui;
 
 use ratatui::{
+    buffer::Buffer,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Style, Stylize},
+    style::{Style, Styled, Stylize},
     text::Line,
-    widgets::{Block, BorderType, Borders, Clear, Paragraph},
+    widgets::{Block, BorderType, Borders, Clear, Padding, Paragraph, Widget},
     Frame,
 };
 
@@ -119,4 +120,42 @@ pub fn render_help(frame: &mut Frame, entries: Vec<(Line, Line)>) {
     frame.render_widget(help_block, help_area);
     frame.render_widget(help_keys, help_center[1]);
     frame.render_widget(help_labels, help_center[3]);
+}
+
+pub struct ListItemContainer<'a, W> {
+    child: W,
+    block: ratatui::widgets::Block<'a>,
+    style: Style,
+}
+
+impl<'a, W> ListItemContainer<'a, W> {
+    pub fn new(child: W, padding: Padding) -> Self {
+        Self {
+            child,
+            block: ratatui::widgets::Block::default().padding(padding),
+            style: Style::default(),
+        }
+    }
+}
+
+impl<T> Styled for ListItemContainer<'_, T> {
+    type Item = Self;
+
+    fn style(&self) -> Style {
+        self.style
+    }
+
+    fn set_style<S: Into<Style>>(mut self, style: S) -> Self::Item {
+        self.style = style.into();
+        self
+    }
+}
+
+impl<W: Widget> Widget for ListItemContainer<'_, W> {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let inner_area = self.block.inner(area);
+        buf.set_style(area, self.style);
+        self.block.render(area, buf);
+        self.child.render(inner_area, buf);
+    }
 }

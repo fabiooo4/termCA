@@ -871,6 +871,7 @@ dependencies = [
  "tui-big-text",
  "tui-input",
  "tui-scrollview",
+ "tui-widget-list",
 ]
 
 [[package]]
@@ -921,6 +922,15 @@ dependencies = [
  "indoc",
  "ratatui 0.29.0",
  "rstest",
+]
+
+[[package]]
+name = "tui-widget-list"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd80265ccaaad37d8e315c2ca1ba40dd30bced081ba4fbe22fa0584fd9c1ca3f"
+dependencies = [
+ "ratatui 0.29.0",
 ]
 
 [[package]]

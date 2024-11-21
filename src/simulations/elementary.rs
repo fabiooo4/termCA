@@ -52,7 +52,6 @@ impl ElementarySim {
                     .cells
                     .insert(0, vec![self.dead_state; self.grid.width()]);
 
-
                 // Iterate over every window of neighbours
                 for (center_idx, neighbours) in
                     self.current_line.windows(self.neighbours).enumerate()
@@ -95,6 +94,28 @@ impl ElementarySim {
                 self.rule_input = self.rule_input.clone().with_value(255.to_string());
                 self.rule = 255;
             }
+        }
+    }
+}
+
+pub enum ElementarySettings {
+    Rule,
+}
+
+impl ElementarySettings {
+    pub const COUNT: usize = 4;
+    pub fn from_index(index: usize) -> Self {
+        match index {
+            1 => ElementarySettings::Rule,
+            _ => ElementarySettings::Rule,
+        }
+    }
+}
+
+impl std::fmt::Display for ElementarySettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ElementarySettings::Rule => write!(f, "Rule"),
         }
     }
 }
