@@ -1,6 +1,7 @@
 use ratatui::style::Color;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use tui_input::Input;
+use tui_widget_list::ListState;
 
 use crate::app::InputMode;
 
@@ -15,12 +16,16 @@ pub struct ElementarySim {
     pub generation: usize, // Number of generations
     pub rule: u8,          // Rules for the ant
 
+    pub settings_state: ListState,
+
     pub rule_input: Input,          // Rules for the ant
     pub rule_input_mode: InputMode, // Input mode
 }
 
 impl Default for ElementarySim {
     fn default() -> Self {
+        let mut list_state = ListState::default();
+        list_state.selected = Some(0);
         Self {
             grid: Grid::new(),
             current_line: Vec::new(),
@@ -29,6 +34,8 @@ impl Default for ElementarySim {
             dead_state: Color::Reset,
             generation: 0,
             rule: 22,
+
+            settings_state: list_state,
 
             rule_input: Input::from(String::from("22")),
             rule_input_mode: InputMode::Normal,
@@ -106,7 +113,7 @@ impl ElementarySettings {
     pub const COUNT: usize = 4;
     pub fn from_index(index: usize) -> Self {
         match index {
-            1 => ElementarySettings::Rule,
+            0 => ElementarySettings::Rule,
             _ => ElementarySettings::Rule,
         }
     }

@@ -35,7 +35,7 @@ pub enum EditTab {
 }
 
 impl EditTab {
-    fn next(&mut self) {
+    pub fn next(&mut self) {
         match self {
             Self::Setting => *self = EditTab::Content,
             Self::Content => *self = EditTab::Setting,
@@ -167,6 +167,7 @@ impl App {
                     Screen::Elementary => {
                         self.start_elementary_default();
                         self.editing = Some(self.list_items[i].screen);
+                        self.selected_edit_tab = Some(EditTab::Setting);
                     }
                     Screen::GameOfLife => {
                         self.start_gol_default();

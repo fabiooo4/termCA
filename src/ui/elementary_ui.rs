@@ -187,26 +187,29 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     frame.render_widget(edit_block, edit_area);
 
     let [left, right] =
-        Layout::horizontal([Constraint::Percentage(25), Constraint::Min(0)]).areas(frame.area());
+        Layout::horizontal([Constraint::Percentage(25), Constraint::Min(0)]).areas(edit_area);
 
     let selected_block = ratatui::widgets::Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Double)
-        .style(Style::default().fg(Color::White));
+        .style(Style::default().not_dim());
 
     let disabled_block = ratatui::widgets::Block::default()
         .borders(Borders::ALL)
-        .style(Style::default().fg(Color::Gray));
+        .border_type(BorderType::Double)
+        .style(Style::default().dim());
 
     // Scroll settings selection
-    let block = match app.selected_edit_tab.unwrap() {
-        EditTab::Setting => selected_block,
-        _ => disabled_block
+    let block = match app.selected_edit_tab.as_ref().unwrap() {
+        EditTab::Setting => selected_block.clone(),
+        _ => disabled_block.clone(),
     };
 
-    ElementarySettingsList::new()
-        .block(block)
-        .render(left, buf, &mut state.variant_state);
+    frame.render_stateful_widget(
+        ElementarySettingsList::build_list().block(block),
+        left,
+        &mut sim.settings_state,
+    );
 
     let ruleset_layout_v = Layout::default()
         .direction(Direction::Vertical)
@@ -228,22 +231,29 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
 
     let scroll = sim
         .rule_input
-        .visual_scroll(edit_area_width.saturating_sub(5) as usize);
+        .visual_scroll(right.width.saturating_sub(3) as usize);
+
+
+    let block = match app.selected_edit_tab.as_ref().unwrap() {
+        EditTab::Content => selected_block.clone(),
+        _ => disabled_block.clone(),
+    };
 
     let input = Paragraph::new(sim.rule_input.value())
         .scroll((0, scroll as u16))
         .block(
-            Block::default()
+            /* Block::default()
                 .borders(Borders::ALL)
                 .border_type(BorderType::Rounded)
                 .border_style(match sim.rule_input_mode {
                     InputMode::Normal => Style::default(),
                     InputMode::Editing => Style::default().yellow().bold(),
                 })
-                .title(" Rule "),
+                .title(" Rule "), */
+            block
         );
 
-    frame.render_widget(input, ruleset_layout_h[1]);
+    // frame.render_widget(input, ruleset_layout_h[1]);
 
     match sim.rule_input_mode {
         InputMode::Normal =>
@@ -254,12 +264,19 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
             frame.set_cursor_position((
                 // Put cursor past the end of the input text
-                ruleset_layout_h[1].x
+                right.x
                     + ((sim.rule_input.visual_cursor()).saturating_sub(scroll)) as u16
                     + 1,
                 // Move one line down, from the border to the input line
-                ruleset_layout_h[1].y + 1,
+                right.y + 1,
             ))
+        }
+    }
+
+
+    match ElementarySettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+        ElementarySettings::Rule => {
+            frame.render_widget(input, right);
         }
     }
 
@@ -281,7 +298,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
 
 pub struct ElementarySettingsList;
 impl ElementarySettingsList {
-    pub fn new<'a>() -> ListView<'a, ListItemContainer<'a, Line<'a>>> {
+    pub fn build_list<'a>() -> ListView<'a, ListItemContainer<'a, Line<'a>>> {
         let builder = ListBuilder::new(move |context| {
             let config = ElementarySettings::from_index(context.index);
             let line = Line::from(format!("{config}")).alignment(Alignment::Center);
@@ -291,7 +308,7 @@ impl ElementarySettingsList {
                 item = item.bg(Color::Yellow).fg(Color::Black);
             };
 
-            return (item, 3);
+            (item, 3)
         });
 
         return ListView::new(builder, ElementarySettings::COUNT);
