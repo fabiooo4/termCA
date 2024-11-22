@@ -168,14 +168,14 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight);
     let offsets_number: usize = ((app.list_items.len() * 2) as f32
-        / (horizontal_layout[1].height - 2) as f32)
+        / (horizontal_layout[1].height.saturating_sub(2)) as f32)
         .ceil() as usize;
 
     app.scroll_state = app.scroll_state.content_length(offsets_number);
 
     app.scroll_state = app.scroll_state.position(app.list_state.offset());
 
-    if horizontal_layout[1].height - 2 < app.list_items.len() as u16 * 2 {
+    if horizontal_layout[1].height.saturating_sub(2) < app.list_items.len() as u16 * 2 {
         frame.render_stateful_widget(
             scrollbar,
             horizontal_layout[1].inner(Margin {

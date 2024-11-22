@@ -107,13 +107,15 @@ impl ElementarySim {
 
 pub enum ElementarySettings {
     Rule,
+    Start,
 }
 
 impl ElementarySettings {
-    pub const COUNT: usize = 4;
+    pub const COUNT: usize = 2;
     pub fn from_index(index: usize) -> Self {
         match index {
             0 => ElementarySettings::Rule,
+            1 => ElementarySettings::Start,
             _ => ElementarySettings::Rule,
         }
     }
@@ -123,6 +125,7 @@ impl std::fmt::Display for ElementarySettings {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ElementarySettings::Rule => write!(f, "Rule"),
+            ElementarySettings::Start => write!(f, "Start"),
         }
     }
 }

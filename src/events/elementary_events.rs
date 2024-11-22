@@ -57,17 +57,22 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                 app.help_screen = !app.help_screen;
             }
 
-            KeyCode::Char('j') => sim.settings_state.next(),
+            KeyCode::Char('j') | KeyCode::Char('J') => sim.settings_state.next(),
 
-            KeyCode::Char('k') => sim.settings_state.previous(),
+            KeyCode::Char('k') | KeyCode::Char('K') => sim.settings_state.previous(),
 
-            KeyCode::Enter => {
+            KeyCode::Enter | KeyCode::Char('l') | KeyCode::Char('L') | KeyCode::Right => {
                 match ElementarySettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
                     ElementarySettings::Rule => {
                         sim.rule_input_mode = InputMode::Editing;
                         app.selected_edit_tab.as_mut().unwrap().next();
                     }
-                    _ => {}
+                    ElementarySettings::Start => {
+                        // Change the screen
+                        app.editing = None;
+                        app.selected_edit_tab = None;
+                        app.current_screen = Screen::Elementary;
+                    }
                 }
             }
 
@@ -75,32 +80,39 @@ pub fn edit(key: KeyEvent, app: &mut App) {
         },
 
         EditTab::Content => {
-            match ElementarySettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
-                ElementarySettings::Rule => {
-                    match key.code {
-                        KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') => {
-                            app.elementary_sim.as_mut().unwrap().rule_input_mode =
-                                InputMode::Normal;
-                            app.selected_edit_tab.as_mut().unwrap().next();
-                        }
-                        _ => {
-                            let sim = app.elementary_sim.as_mut().unwrap();
-                            let allowed_chars = "0123456789";
+            if let ElementarySettings::Rule =
+                ElementarySettings::from_index(sim.settings_state.selected.unwrap_or(0))
+            {
+                match key.code {
+                    KeyCode::Char('?') => {
+                        app.help_screen = !app.help_screen;
+                    }
 
-                            // Only handle allowed characters
-                            sim.rule_input.handle_event(&Event::Key(match key.code {
-                                KeyCode::Char(c) => {
-                                    if allowed_chars.contains(c) {
-                                        KeyEvent::from(KeyCode::Char(c))
-                                    } else {
-                                        KeyEvent::from(KeyCode::Null)
-                                    }
+                    KeyCode::Esc
+                    | KeyCode::Enter
+                    | KeyCode::Char('q')
+                    | KeyCode::Char('h')
+                    | KeyCode::Char('H') => {
+                        app.elementary_sim.as_mut().unwrap().rule_input_mode = InputMode::Normal;
+                        app.selected_edit_tab.as_mut().unwrap().next();
+                    }
+                    _ => {
+                        let sim = app.elementary_sim.as_mut().unwrap();
+                        let allowed_chars = "0123456789";
+
+                        // Only handle allowed characters
+                        sim.rule_input.handle_event(&Event::Key(match key.code {
+                            KeyCode::Char(c) => {
+                                if allowed_chars.contains(c) {
+                                    KeyEvent::from(KeyCode::Char(c))
+                                } else {
+                                    KeyEvent::from(KeyCode::Null)
                                 }
-                                _ => key,
-                            }));
+                            }
+                            _ => key,
+                        }));
 
-                            sim.parse_input();
-                        }
+                        sim.parse_input();
                     }
                 }
             }

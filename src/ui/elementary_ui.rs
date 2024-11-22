@@ -1,6 +1,7 @@
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::Color;
-use ratatui::widgets::{Clear, Padding};
+use ratatui::widgets::block::Position;
+use ratatui::widgets::{Clear, Padding, Wrap};
 use ratatui::{layout::Rect, Frame};
 
 use ratatui::{
@@ -17,7 +18,7 @@ use tui_widget_list::{ListBuilder, ListView};
 use crate::app::{App, EditTab, InputMode};
 use crate::simulations::elementary::ElementarySettings;
 
-use super::{centered_rect_length, render_help, ListItemContainer};
+use super::{centered_rect_length, render_help, settings_help, ListItemContainer};
 
 pub fn elementary_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -174,109 +175,83 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     /////////////////////////////
     // Centered popup
     /////////////////////////////
-    let edit_area = centered_rect_length(35, 5, frame.area());
-
-    let edit_area_width = edit_area.width;
+    let edit_area =
+        centered_rect_length(36, ElementarySettings::COUNT as u16 * 2 + 5, frame.area());
 
     let edit_block = Block::default()
-        .title(" Editing Elementary CA")
+        .title(" Editing Elementary CA ".bold())
         .title_alignment(Alignment::Center)
-        .borders(Borders::NONE);
+        .title_position(Position::Bottom);
 
     frame.render_widget(Clear, edit_area);
-    frame.render_widget(edit_block, edit_area);
+
+    /////////////////////////////
+    // Layouts
+    /////////////////////////////
+
+    let [top, bottom] =
+        Layout::vertical([Constraint::Length(2), Constraint::Min(0)]).areas(edit_area);
 
     let [left, right] =
-        Layout::horizontal([Constraint::Percentage(25), Constraint::Min(0)]).areas(edit_area);
+        Layout::horizontal([Constraint::Percentage(25), Constraint::Min(0)]).areas(bottom);
+
+    frame.render_widget(edit_block, top);
+
+    /////////////////////////////
+    // Block styles
+    /////////////////////////////
 
     let selected_block = ratatui::widgets::Block::default()
         .borders(Borders::ALL)
-        .border_type(BorderType::Double)
+        .border_type(BorderType::Thick)
+        .border_style(Style::default().yellow().bold())
+        .padding(Padding::horizontal(1))
         .style(Style::default().not_dim());
 
     let disabled_block = ratatui::widgets::Block::default()
         .borders(Borders::ALL)
-        .border_type(BorderType::Double)
+        .border_type(BorderType::Thick)
+        .padding(Padding::horizontal(1))
         .style(Style::default().dim());
 
-    // Scroll settings selection
+    /////////////////////////////
+    // Settings list
+    /////////////////////////////
+
     let block = match app.selected_edit_tab.as_ref().unwrap() {
         EditTab::Setting => selected_block.clone(),
         _ => disabled_block.clone(),
     };
 
     frame.render_stateful_widget(
-        ElementarySettingsList::build_list().block(block),
+        ElementarySettingsList::build_list().block(block.clone()),
         left,
         &mut sim.settings_state,
     );
 
-    let ruleset_layout_v = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(1),
-            Constraint::Length(3),
-            Constraint::Length(1),
-        ])
-        .split(edit_area);
-
-    let ruleset_layout_h = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Length(1),
-            Constraint::Min(1),
-            Constraint::Length(1),
-        ])
-        .split(ruleset_layout_v[1]);
-
-    let scroll = sim
-        .rule_input
-        .visual_scroll(right.width.saturating_sub(3) as usize);
-
+    /////////////////////////////
+    // Content
+    /////////////////////////////
 
     let block = match app.selected_edit_tab.as_ref().unwrap() {
         EditTab::Content => selected_block.clone(),
         _ => disabled_block.clone(),
     };
 
-    let input = Paragraph::new(sim.rule_input.value())
-        .scroll((0, scroll as u16))
-        .block(
-            /* Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .border_style(match sim.rule_input_mode {
-                    InputMode::Normal => Style::default(),
-                    InputMode::Editing => Style::default().yellow().bold(),
-                })
-                .title(" Rule "), */
-            block
-        );
+    frame.render_widget(block, right);
 
-    // frame.render_widget(input, ruleset_layout_h[1]);
-
-    match sim.rule_input_mode {
-        InputMode::Normal =>
-            // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
-            {}
-
-        InputMode::Editing => {
-            // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
-            frame.set_cursor_position((
-                // Put cursor past the end of the input text
-                right.x
-                    + ((sim.rule_input.visual_cursor()).saturating_sub(scroll)) as u16
-                    + 1,
-                // Move one line down, from the border to the input line
-                right.y + 1,
-            ))
-        }
-    }
-
+    let [right] = Layout::vertical([Constraint::Fill(1)])
+        .vertical_margin(1)
+        .horizontal_margin(2)
+        .areas(right);
 
     match ElementarySettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
         ElementarySettings::Rule => {
-            frame.render_widget(input, right);
+            rule_content(sim, right, app.help_screen, frame);
+        }
+        ElementarySettings::Start => {
+            let info = Paragraph::new("Start the simulation").centered();
+            frame.render_widget(info, right);
         }
     }
 
@@ -284,16 +259,85 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     // Help screen
     /////////////////////////////
 
-    let help_entries: Vec<(Line, Line)> = vec![
-        (Line::from("?".yellow()), Line::from("Help")),
-        (Line::from("Q / Esc".yellow()), Line::from("Stop typing")),
-        (Line::from("Enter".yellow()), Line::from("Start typing")),
-        (Line::from("Space".yellow()), Line::from("Start simulation")),
-    ];
+    let help_entries: Vec<(Line, Line)> = match app.selected_edit_tab.as_ref().unwrap() {
+        EditTab::Setting => settings_help(),
+        EditTab::Content => {
+            match ElementarySettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+                ElementarySettings::Rule => rule_help(),
+                _ => vec![],
+            }
+        }
+    };
 
     if app.help_screen {
         render_help(frame, help_entries);
     }
+}
+
+fn rule_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
+    vec![
+        (Line::from("?".yellow()), Line::from("Help")),
+        (
+            Line::from("Q / Esc / Enter / H".yellow()),
+            Line::from("Stop typing"),
+        ),
+    ]
+}
+
+fn rule_content(
+    sim: &mut crate::simulations::elementary::ElementarySim,
+    buf: Rect,
+    help_screen: bool,
+    frame: &mut Frame<'_>,
+) {
+    let info_text = format!(
+        "Insert a number between 0 and {}:",
+        2_u32.pow(2_u32.pow(sim.neighbours as u32)) - 1
+    );
+    let info = Paragraph::new(info_text.dim()).wrap(Wrap { trim: true });
+
+    let [info_chunk, input_chunk] =
+        Layout::vertical([Constraint::Min(1), Constraint::Min(3)]).areas(buf);
+
+    let scroll = sim
+        .rule_input
+        .visual_scroll(buf.width.saturating_sub(3) as usize);
+
+    let input = Paragraph::new(sim.rule_input.value())
+        .scroll((0, scroll as u16))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(match sim.rule_input_mode {
+                    InputMode::Normal => Style::default().dim(),
+                    InputMode::Editing => Style::default().bold().not_dim(),
+                }),
+        );
+
+    match sim.rule_input_mode {
+        InputMode::Normal =>
+            // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
+            {}
+
+        InputMode::Editing => {
+            if !help_screen {
+                {
+                    frame.set_cursor_position((
+                        // Put cursor past the end of the input text
+                        buf.x
+                            + ((sim.rule_input.visual_cursor()).saturating_sub(scroll)) as u16
+                            + 1,
+                        // Move one line down, from the border to the input line
+                        buf.y + 3,
+                    ))
+                }
+            }
+        }
+    }
+
+    frame.render_widget(info, info_chunk);
+    frame.render_widget(input, input_chunk);
 }
 
 pub struct ElementarySettingsList;
@@ -302,13 +346,13 @@ impl ElementarySettingsList {
         let builder = ListBuilder::new(move |context| {
             let config = ElementarySettings::from_index(context.index);
             let line = Line::from(format!("{config}")).alignment(Alignment::Center);
-            let mut item = ListItemContainer::new(line, Padding::vertical(1));
+            let mut item = ListItemContainer::new(line, Padding::ZERO);
 
             if context.is_selected {
-                item = item.bg(Color::Yellow).fg(Color::Black);
+                item = item.yellow().bold();
             };
 
-            (item, 3)
+            (item, 2)
         });
 
         return ListView::new(builder, ElementarySettings::COUNT);

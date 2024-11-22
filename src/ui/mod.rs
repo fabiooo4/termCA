@@ -159,3 +159,18 @@ impl<W: Widget> Widget for ListItemContainer<'_, W> {
         self.child.render(inner_area, buf);
     }
 }
+
+
+pub fn settings_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
+    vec![
+        (Line::from("?".yellow()), Line::from("Help")),
+        (Line::from("Q / Esc".yellow()), Line::from("Quit edit mode")),
+        (
+            Line::from("Enter / L / →".yellow()),
+            Line::from("Select setting"),
+        ),
+        (Line::from("K / ↑".yellow()), Line::from("Previous setting")),
+        (Line::from("J / ↓".yellow()), Line::from("Next setting")),
+        (Line::from("Space".yellow()), Line::from("Start simulation")),
+    ]
+}
