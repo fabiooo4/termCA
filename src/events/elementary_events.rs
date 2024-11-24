@@ -57,9 +57,9 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                 app.help_screen = !app.help_screen;
             }
 
-            KeyCode::Char('j') | KeyCode::Char('J') => sim.settings_state.next(),
+            KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => sim.settings_state.next(),
 
-            KeyCode::Char('k') | KeyCode::Char('K') => sim.settings_state.previous(),
+            KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => sim.settings_state.previous(),
 
             KeyCode::Enter | KeyCode::Char('l') | KeyCode::Char('L') | KeyCode::Right => {
                 match ElementarySettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
