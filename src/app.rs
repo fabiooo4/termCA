@@ -163,6 +163,7 @@ impl App {
                         // Create a default ant simulation to be able to edit it
                         self.start_ant_default();
                         self.editing = Some(self.list_items[i].screen);
+                        self.selected_edit_tab = Some(EditTab::Setting);
                     }
                     Screen::Elementary => {
                         self.start_elementary_default();

@@ -2,6 +2,7 @@ use crate::app::InputMode;
 use ratatui::style::Color;
 use tui_input::Input;
 use tui_scrollview::ScrollViewState;
+use tui_widget_list::ListState;
 
 use super::{Direction, Grid};
 
@@ -14,6 +15,9 @@ pub struct AntSim {
     pub generation: usize,     // Number of generations
 
     // Edit state
+
+    pub settings_state: ListState,
+
     pub rules_input: Input,          // Input widget
     pub rules_input_mode: InputMode, // Input mode
 
@@ -23,6 +27,8 @@ pub struct AntSim {
 
 impl Default for AntSim {
     fn default() -> Self {
+        let mut list_state = ListState::default();
+        list_state.selected = Some(0);
         AntSim {
             ants: vec![Ant::default()],
             grid: Grid::new(),
@@ -47,6 +53,8 @@ impl Default for AntSim {
             ],
             rules: vec![Direction::Right, Direction::Left],
             generation: 0,
+
+            settings_state: list_state,
 
             rules_input: Input::from(String::from("RL")),
             rules_input_mode: InputMode::Normal,
@@ -184,6 +192,31 @@ impl AntSim {
                 grid.cells[ant.y][ant.x] = *states.next().unwrap();
                 break;
             }
+        }
+    }
+}
+
+pub enum AntSettings {
+    Ruleset,
+    Start,
+}
+
+impl AntSettings {
+    pub const COUNT: usize = 2;
+    pub fn from_index(index: usize) -> Self {
+        match index {
+            0 => AntSettings::Ruleset,
+            1 => AntSettings::Start,
+            _ => AntSettings::Ruleset,
+        }
+    }
+}
+
+impl std::fmt::Display for AntSettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AntSettings::Ruleset => write!(f, "Ruleset"),
+            AntSettings::Start => write!(f, "Start"),
         }
     }
 }

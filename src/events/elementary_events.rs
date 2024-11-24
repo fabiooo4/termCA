@@ -118,58 +118,6 @@ pub fn edit(key: KeyEvent, app: &mut App) {
             }
         }
     }
-
-    /* match sim.rule_input_mode {
-        InputMode::Normal => {
-            match key.code {
-                KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => {
-                    app.editing = None;
-                    app.elementary_sim = None;
-                }
-
-                KeyCode::Char('?') => {
-                    app.help_screen = !app.help_screen;
-                }
-
-                KeyCode::Enter => {
-                    sim.rule_input_mode = InputMode::Editing;
-                    app.selected_edit_tab.as_mut().unwrap().next();
-                }
-
-                KeyCode::Char(' ') => {
-                    // Change the screen
-                    app.editing = None;
-                    app.current_screen = Screen::Elementary;
-                }
-
-                _ => {}
-            }
-        }
-        InputMode::Editing => match key.code {
-            KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') => {
-                app.elementary_sim.as_mut().unwrap().rule_input_mode = InputMode::Normal;
-                app.selected_edit_tab.as_mut().unwrap().next();
-            }
-            _ => {
-                let sim = app.elementary_sim.as_mut().unwrap();
-                let allowed_chars = "0123456789";
-
-                // Only handle allowed characters
-                sim.rule_input.handle_event(&Event::Key(match key.code {
-                    KeyCode::Char(c) => {
-                        if allowed_chars.contains(c) {
-                            KeyEvent::from(KeyCode::Char(c))
-                        } else {
-                            KeyEvent::from(KeyCode::Null)
-                        }
-                    }
-                    _ => key,
-                }));
-
-                sim.parse_input();
-            }
-        },
-    } */
 }
 
 pub fn resize(new_width: u16, new_height: u16, app: &mut App) {

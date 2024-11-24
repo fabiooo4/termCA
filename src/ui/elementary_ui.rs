@@ -18,7 +18,7 @@ use tui_widget_list::{ListBuilder, ListView};
 use crate::app::{App, EditTab, InputMode};
 use crate::simulations::elementary::ElementarySettings;
 
-use super::{centered_rect_length, render_help, settings_help, ListItemContainer};
+use super::{centered_rect_length, render_help, settings_help, start_content, ListItemContainer};
 
 pub fn elementary_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -250,8 +250,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             rule_content(sim, right, app.help_screen, frame);
         }
         ElementarySettings::Start => {
-            let info = Paragraph::new("Start the simulation").centered();
-            frame.render_widget(info, right);
+            start_content(frame, right);
         }
     }
 
@@ -273,6 +272,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         render_help(frame, help_entries);
     }
 }
+
 
 fn rule_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
     vec![
@@ -297,7 +297,7 @@ fn rule_content(
     let info = Paragraph::new(info_text.dim()).wrap(Wrap { trim: true });
 
     let [info_chunk, input_chunk] =
-        Layout::vertical([Constraint::Min(1), Constraint::Min(3)]).areas(buf);
+        Layout::vertical([Constraint::Min(1), Constraint::Max(3)]).areas(buf);
 
     let scroll = sim
         .rule_input

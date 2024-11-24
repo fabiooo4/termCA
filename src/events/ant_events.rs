@@ -3,9 +3,9 @@ use ratatui::style::Color;
 use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
-    app::{App, InputMode, Screen},
+    app::{App, EditTab, InputMode, Screen},
     simulations::{
-        ant::{Ant, AntSim},
+        ant::{Ant, AntSettings, AntSim},
         Direction,
     },
 };
@@ -28,7 +28,7 @@ pub fn main(key: KeyEvent, app: &mut App) {
     }
 }
 
-pub fn edit(key: KeyEvent, app: &mut App) {
+pub fn editold(key: KeyEvent, app: &mut App) {
     let ant_sim = app.ant_sim.as_mut().unwrap();
     let scroll_factor = 2; // TODO: Replace with something better
     match ant_sim.rules_input_mode {
@@ -155,6 +155,104 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                     }));
             }
         },
+    }
+}
+
+pub fn edit(key: KeyEvent, app: &mut App) {
+    let sim = app.ant_sim.as_mut().unwrap();
+    match app.selected_edit_tab.as_ref().unwrap() {
+        EditTab::Setting => match key.code {
+            KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => {
+                app.editing = None;
+                app.selected_edit_tab = None;
+                app.ant_sim = None;
+            }
+
+            KeyCode::Char(' ') => {
+                // Change the screen
+                app.editing = None;
+                app.selected_edit_tab = None;
+                app.current_screen = Screen::Ant;
+            }
+
+            KeyCode::Char('?') => {
+                app.help_screen = !app.help_screen;
+            }
+
+            KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => sim.settings_state.next(),
+
+            KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => sim.settings_state.previous(),
+
+            KeyCode::Enter | KeyCode::Char('l') | KeyCode::Char('L') | KeyCode::Right => {
+                match AntSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+                    AntSettings::Ruleset => {
+                        sim.rules_input_mode = InputMode::Editing;
+                        app.selected_edit_tab.as_mut().unwrap().next();
+                    }
+                    AntSettings::Start => {
+                        // Change the screen
+                        app.editing = None;
+                        app.selected_edit_tab = None;
+                        app.current_screen = Screen::Ant;
+                    }
+                }
+            }
+
+            _ => {}
+        },
+
+        EditTab::Content => {
+            if let AntSettings::Ruleset =
+                AntSettings::from_index(sim.settings_state.selected.unwrap_or(0))
+            {
+                match key.code {
+                    KeyCode::Char('?') => {
+                        app.help_screen = !app.help_screen;
+                    }
+
+                    KeyCode::Esc
+                    | KeyCode::Enter
+                    | KeyCode::Char('q')
+                    | KeyCode::Char('h')
+                    | KeyCode::Char('H') => {
+                        let sim = app.ant_sim.as_mut().unwrap();
+
+                        sim.rules_input_mode = InputMode::Normal;
+                        app.selected_edit_tab.as_mut().unwrap().next();
+
+                        // Parse the user inserted rules
+                        sim.rules = AntSim::parse_ant_ruleset(sim.rules_input.value());
+
+                        // Add states for every rule
+                        let rules_len = sim.rules.len();
+                        let states_len =sim.states.len();
+                        if rules_len > states_len {
+                            for i in (states_len + 1)..=rules_len {
+                                sim.states.push(Color::Indexed(i as u8));
+                            }
+                        }
+                    }
+                    _ => {
+                        let sim = app.ant_sim.as_mut().unwrap();
+                        let allowed_chars = "rlfbRLFB";
+
+                        // Only handle allowed characters
+                        sim
+                            .rules_input
+                            .handle_event(&Event::Key(match key.code {
+                                KeyCode::Char(c) => {
+                                    if allowed_chars.contains(c) {
+                                        KeyEvent::from(KeyCode::Char(c.to_ascii_uppercase()))
+                                    } else {
+                                        KeyEvent::from(KeyCode::Null)
+                                    }
+                                }
+                                _ => key,
+                            }));
+                    }
+                }
+            }
+        }
     }
 }
 

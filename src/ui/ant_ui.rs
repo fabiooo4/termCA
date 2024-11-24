@@ -2,7 +2,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect, Size},
     style::Modifier,
     text::Span,
-    widgets::Wrap,
+    widgets::{block::Position, Padding, Wrap},
     Frame,
 };
 
@@ -17,13 +17,19 @@ use ratatui::{
     },
 };
 use tui_scrollview::ScrollView;
+use tui_widget_list::{ListBuilder, ListView};
 
 use crate::{
-    app::{App, InputMode},
-    simulations::{self, ant::AntSim},
+    app::{App, EditTab, InputMode},
+    simulations::{
+        self,
+        ant::{AntSettings, AntSim},
+    },
 };
 
-use super::{centered_rect_percent, render_help};
+use super::{
+    centered_rect_length, centered_rect_percent, render_help, settings_help, start_content, ListItemContainer
+};
 
 pub fn ant_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -69,28 +75,27 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     if app.ant_sim.is_none() {
         app.start_ant_default();
 
-        let ant_sim = app.ant_sim.as_mut().unwrap();
+        let sim = app.ant_sim.as_mut().unwrap();
 
         // Initialize the grid with the same size as the canvas
-        ant_sim
-            .grid
-            .resize(width as usize, height as usize, ant_sim.states[0]);
+        sim.grid
+            .resize(width as usize, height as usize, sim.states[0]);
 
         // Change default ruleset
         // ant_sim.rules = AntSim::parse_ant_ruleset("RRLLLRLLLLLLLLL");
-        ant_sim.rules = AntSim::parse_ant_ruleset("RL");
+        sim.rules = AntSim::parse_ant_ruleset("RL");
 
         // Set ant position randomly biased towards the center
         let mut rng = rand::thread_rng();
 
-        for ant in &mut ant_sim.ants {
+        for ant in &mut sim.ants {
             ant.x = rng.gen_range((width * 0.4) as usize..(width - width * 0.4) as usize) as usize;
             ant.y =
                 rng.gen_range((height * 0.4) as usize..(height - height * 0.4) as usize) as usize;
         }
 
         // Set ant direction randomly
-        for ant in &mut ant_sim.ants {
+        for ant in &mut sim.ants {
             let direction = rng.gen_range(0..4);
             ant.direction = match direction {
                 0 => simulations::Direction::Left,
@@ -103,15 +108,14 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     } else if app.ant_sim.as_ref().unwrap().generation == 0 {
         // If the ant simulation is already set, the grid still needs to be initialized with the
         // screen size
-        let ant_sim = app.ant_sim.as_mut().unwrap();
+        let sim = app.ant_sim.as_mut().unwrap();
 
         // Initialize the grid with the same size as the canvas
-        ant_sim
-            .grid
-            .resize(width as usize, height as usize, ant_sim.states[0]);
+        sim.grid
+            .resize(width as usize, height as usize, sim.states[0]);
 
         // Reposition the ant inside the bounds if it is outside
-        for ant in ant_sim.ants.iter_mut() {
+        for ant in sim.ants.iter_mut() {
             if ant.x > width as usize {
                 ant.x = width as usize / 2;
             }
@@ -123,7 +127,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     }
 
     // From here `app.ant_sim` is `Some`
-    let ant_sim = app.ant_sim.as_ref().unwrap();
+    let sim = app.ant_sim.as_ref().unwrap();
 
     /////////////////////////////
     // Border content
@@ -133,7 +137,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     let bottom_left_title = Line::from(vec![
         " Iteration: ".into(),
-        ant_sim.generation.to_string().yellow(),
+        sim.generation.to_string().yellow(),
         " ".into(),
     ]);
 
@@ -193,7 +197,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .marker(app.marker)
         .paint(|ctx| {
             // Draw grid
-            for (y, row) in ant_sim.grid.cells.iter().enumerate() {
+            for (y, row) in sim.grid.cells.iter().enumerate() {
                 for (x, cell) in row.iter().enumerate() {
                     match *cell {
                         // Skip drawing black cells
@@ -209,7 +213,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             }
 
             // Draw ant
-            for ant in ant_sim.ants.iter() {
+            for ant in sim.ants.iter() {
                 ctx.draw(&Points {
                     coords: &[(ant.x as f64, ant.y as f64)],
                     color: ant.color,
@@ -239,8 +243,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     }
 }
 
-pub fn edit(frame: &mut Frame, app: &mut App) {
-    let ant_sim = app.ant_sim.as_mut().unwrap();
+pub fn editold(frame: &mut Frame, app: &mut App) {
+    let sim = app.ant_sim.as_mut().unwrap();
 
     let selected_style = Style::default().yellow().bold();
     let not_selected_style = Style::default();
@@ -263,7 +267,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
 
     let mut scroll_view = ScrollView::new(Size::new(
         scroll_area.width - 1,
-        scroll_area.height + 7 + 3 + 4 + 5 + (ant_sim.ants.len().saturating_sub(1) as u16) * 5 + 3,
+        scroll_area.height + 7 + 3 + 4 + 5 + (sim.ants.len().saturating_sub(1) as u16) * 5 + 3,
     ));
 
     let edit_block = Block::default()
@@ -283,7 +287,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
             Constraint::Length(3),
             Constraint::Length(1),
             Constraint::Length(4),
-            Constraint::Max(ant_sim.ants.len() as u16 * 5),
+            Constraint::Max(sim.ants.len() as u16 * 5),
             Constraint::Length(3),
             Constraint::Length(1),
             Constraint::Length(3),
@@ -294,25 +298,22 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     // Selection
     /////////////////////////////
     // TODO: Replace scrollview with a list of different widgets
-    if ant_sim.scroll_state.offset().y + scroll_area.y / 3 < 10 {
+    if sim.scroll_state.offset().y + scroll_area.y / 3 < 10 {
         // Select input
-        ant_sim.edit_item_selected = 0;
-    } else if usize::from(ant_sim.scroll_state.offset().y + scroll_area.y / 2)
-        < ant_sim.ants.len() * 5 + 10
+        sim.edit_item_selected = 0;
+    } else if usize::from(sim.scroll_state.offset().y + scroll_area.y / 2) < sim.ants.len() * 5 + 10
     {
         // Select ants
-        ant_sim.edit_item_selected =
-            usize::from(ant_sim.scroll_state.offset().y.saturating_sub(10) / 5 + 1);
-    } else if usize::from(ant_sim.scroll_state.offset().y + scroll_area.y / 2)
-        < ant_sim.ants.len() * 5 + 15
+        sim.edit_item_selected =
+            usize::from(sim.scroll_state.offset().y.saturating_sub(10) / 5 + 1);
+    } else if usize::from(sim.scroll_state.offset().y + scroll_area.y / 2) < sim.ants.len() * 5 + 15
     {
         // Select "Add ants" button
-        ant_sim.edit_item_selected = ant_sim.ants.len() + 1;
-    } else if usize::from(ant_sim.scroll_state.offset().y + scroll_area.y / 2)
-        < ant_sim.ants.len() * 5 + 19
+        sim.edit_item_selected = sim.ants.len() + 1;
+    } else if usize::from(sim.scroll_state.offset().y + scroll_area.y / 2) < sim.ants.len() * 5 + 19
     {
         // Select "Start simulation"
-        ant_sim.edit_item_selected = ant_sim.ants.len() + 2;
+        sim.edit_item_selected = sim.ants.len() + 2;
     }
 
     /////////////////////////////
@@ -335,17 +336,17 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     ])
     .style(Style::default().dim());
 
-    let input_scroll = ant_sim
+    let input_scroll = sim
         .rules_input
         .visual_scroll(scroll_view.area().width.saturating_sub(5) as usize);
 
-    let input = Paragraph::new(ant_sim.rules_input.value())
+    let input = Paragraph::new(sim.rules_input.value())
         .scroll((0, input_scroll as u16))
         .block(
             Block::default()
                 .borders(Borders::ALL)
                 .border_type(BorderType::Rounded)
-                .border_style(match ant_sim.rules_input_mode {
+                .border_style(match sim.rules_input_mode {
                     InputMode::Normal => Style::default(),
                     InputMode::Editing => Style::default()
                         .yellow()
@@ -354,8 +355,8 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                 })
                 .title(" Ruleset "),
         )
-        .style(if ant_sim.edit_item_selected == 0 {
-            match ant_sim.rules_input_mode {
+        .style(if sim.edit_item_selected == 0 {
+            match sim.rules_input_mode {
                 InputMode::Normal => selected_style,
                 InputMode::Editing => Style::default(),
             }
@@ -367,8 +368,8 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     scroll_view.render_widget(input, vertical_chunks[1]);
 
     let input_position_y =
-        (input_paragraph_chunk[0].y + 8).saturating_sub(ant_sim.scroll_state.offset().y);
-    match ant_sim.rules_input_mode {
+        (input_paragraph_chunk[0].y + 8).saturating_sub(sim.scroll_state.offset().y);
+    match sim.rules_input_mode {
         InputMode::Normal => {}
         InputMode::Editing => {
             // Make the cursor visible and put it at the specified coordinates after rendering
@@ -377,12 +378,11 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                     // Put cursor past the end of the input text
                     vertical_chunks[1].x
                         + edit_area.x
-                        + ((ant_sim.rules_input.visual_cursor()).saturating_sub(input_scroll))
-                            as u16
+                        + ((sim.rules_input.visual_cursor()).saturating_sub(input_scroll)) as u16
                         + horizontal_margin * 2,
                     // Move one line down, from the border to the input line
                     // and offset relative to scroll
-                    vertical_chunks[1].y + edit_area.y + 2 - ant_sim.scroll_state.offset().y,
+                    vertical_chunks[1].y + edit_area.y + 2 - sim.scroll_state.offset().y,
                 ))
             }
         }
@@ -404,11 +404,8 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     .style(Style::default().dim())
     .wrap(Wrap { trim: true });
 
-    let ant_constraints: Vec<Constraint> = ant_sim
-        .ants
-        .iter()
-        .map(|_| Constraint::Length(2 + 3))
-        .collect();
+    let ant_constraints: Vec<Constraint> =
+        sim.ants.iter().map(|_| Constraint::Length(2 + 3)).collect();
     let ant_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(ant_constraints)
@@ -419,14 +416,14 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     let up_style = Style::default().bold().blue();
     let down_style = Style::default().bold().green();
 
-    for (i, ant) in ant_sim.ants.iter().enumerate() {
+    for (i, ant) in sim.ants.iter().enumerate() {
         let ant_widget = Paragraph::new(vec![
             Line::from(format!(
                 "x: {}",
                 match ant.x {
                     usize::MAX => "Center".to_string(),
                     _ => {
-                        if ant.x == ant_sim.grid.width() / 2 {
+                        if ant.x == sim.grid.width() / 2 {
                             "Center".to_string()
                         } else {
                             ant.x.to_string()
@@ -439,7 +436,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                 match ant.y {
                     usize::MAX => "Center".to_string(),
                     _ => {
-                        if ant.y == ant_sim.grid.height() / 2 {
+                        if ant.y == sim.grid.height() / 2 {
                             "Center".to_string()
                         } else {
                             ant.y.to_string()
@@ -464,7 +461,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                 .border_type(BorderType::Rounded)
                 .title(format!(" Ant {} ", i)),
         )
-        .style(if ant_sim.edit_item_selected == i + 1 {
+        .style(if sim.edit_item_selected == i + 1 {
             selected_style
         } else {
             not_selected_style
@@ -484,7 +481,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                 .borders(Borders::ALL)
                 .border_type(BorderType::Rounded),
         )
-        .style(if ant_sim.edit_item_selected == 1 + ant_sim.ants.len() {
+        .style(if sim.edit_item_selected == 1 + sim.ants.len() {
             selected_style
         } else {
             not_selected_style
@@ -510,7 +507,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
                 .borders(Borders::ALL)
                 .border_type(BorderType::Rounded),
         )
-        .style(if ant_sim.edit_item_selected == 2 + ant_sim.ants.len() {
+        .style(if sim.edit_item_selected == 2 + sim.ants.len() {
             selected_style
         } else {
             not_selected_style
@@ -526,7 +523,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         .split(vertical_chunks[7]);
     scroll_view.render_widget(confirm, confirm_chunk[1]);
 
-    frame.render_stateful_widget(scroll_view, scroll_area, &mut ant_sim.scroll_state);
+    frame.render_stateful_widget(scroll_view, scroll_area, &mut sim.scroll_state);
     frame.render_widget(edit_block, edit_area);
 
     /////////////////////////////
@@ -590,15 +587,14 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     // If the ant simulation is already set, the grid still needs to be initialized with the
     // screen size
-    let ant_sim = app.ant_sim.as_mut().unwrap();
+    let sim = app.ant_sim.as_mut().unwrap();
 
     // Initialize the grid with the same size as the canvas
-    ant_sim
-        .grid
-        .resize(width as usize, height as usize, ant_sim.states[0]);
+    sim.grid
+        .resize(width as usize, height as usize, sim.states[0]);
 
     // Wrap ant position
-    for ant in ant_sim.ants.iter_mut() {
+    for ant in sim.ants.iter_mut() {
         if ant.x > width as usize {
             ant.x = width as usize / 2;
         }
@@ -608,7 +604,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         }
     }
 
-    let ant_sim = app.ant_sim.as_ref().unwrap();
+    let sim = app.ant_sim.as_ref().unwrap();
 
     /////////////////////////////
     // Border content
@@ -623,8 +619,8 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     let bottom_left_title = Line::from(vec![
         " Direction: ".into(),
-        Span::from(ant_sim.ants[ant_idx].direction.to_string()).style(
-            match ant_sim.ants[ant_idx].direction {
+        Span::from(sim.ants[ant_idx].direction.to_string()).style(
+            match sim.ants[ant_idx].direction {
                 crate::simulations::Direction::Right => right_style,
                 crate::simulations::Direction::Left => left_style,
                 crate::simulations::Direction::Up => up_style,
@@ -638,11 +634,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     let bottom_right_title = Line::from(vec![
         " Position: ".into(),
-        format!(
-            "(x: {}, y: {}) ",
-            ant_sim.ants[ant_idx].x, ant_sim.ants[ant_idx].y
-        )
-        .into(),
+        format!("(x: {}, y: {}) ", sim.ants[ant_idx].x, sim.ants[ant_idx].y).into(),
     ]);
 
     /////////////////////////////
@@ -663,10 +655,10 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         .marker(app.marker)
         .paint(|ctx| {
             // Draw ants
-            for (i, ant) in ant_sim.ants.iter().enumerate() {
+            for (i, ant) in sim.ants.iter().enumerate() {
                 ctx.draw(&Points {
                     coords: &[(ant.x as f64, ant.y as f64)],
-                    color: match ant_sim.ants[i].direction {
+                    color: match sim.ants[i].direction {
                         crate::simulations::Direction::Right => Color::Yellow,
                         crate::simulations::Direction::Left => Color::Red,
                         crate::simulations::Direction::Up => Color::Blue,
@@ -700,5 +692,189 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     if app.help_screen {
         render_help(frame, help_entries);
+    }
+}
+
+pub fn edit(frame: &mut Frame, app: &mut App) {
+    let sim = app.ant_sim.as_mut().unwrap();
+
+    /////////////////////////////
+    // Centered popup
+    /////////////////////////////
+    let edit_area = centered_rect_length(42, AntSettings::COUNT as u16 * 2 + 9, frame.area());
+
+    let edit_block = Block::default()
+        .title(" Editing Lanton's Ant ".bold())
+        .title_alignment(Alignment::Center)
+        .title_position(Position::Bottom);
+
+    frame.render_widget(Clear, edit_area);
+
+    /////////////////////////////
+    // Layouts
+    /////////////////////////////
+
+    let [top, bottom] =
+        Layout::vertical([Constraint::Length(2), Constraint::Min(0)]).areas(edit_area);
+
+    let [left, right] =
+        Layout::horizontal([Constraint::Percentage(25), Constraint::Min(0)]).areas(bottom);
+
+    frame.render_widget(edit_block, top);
+
+    /////////////////////////////
+    // Block styles
+    /////////////////////////////
+
+    let selected_block = ratatui::widgets::Block::default()
+        .borders(Borders::ALL)
+        .border_type(BorderType::Thick)
+        .border_style(Style::default().yellow().bold())
+        .padding(Padding::horizontal(1))
+        .style(Style::default().not_dim());
+
+    let disabled_block = ratatui::widgets::Block::default()
+        .borders(Borders::ALL)
+        .border_type(BorderType::Thick)
+        .padding(Padding::horizontal(1))
+        .style(Style::default().dim());
+
+    /////////////////////////////
+    // Settings list
+    /////////////////////////////
+
+    let block = match app.selected_edit_tab.as_ref().unwrap() {
+        EditTab::Setting => selected_block.clone(),
+        _ => disabled_block.clone(),
+    };
+
+    frame.render_stateful_widget(
+        AntSettingsList::build_list().block(block.clone()),
+        left,
+        &mut sim.settings_state,
+    );
+
+    /////////////////////////////
+    // Content
+    /////////////////////////////
+
+    let block = match app.selected_edit_tab.as_ref().unwrap() {
+        EditTab::Content => selected_block.clone(),
+        _ => disabled_block.clone(),
+    };
+
+    frame.render_widget(block, right);
+
+    let [right] = Layout::vertical([Constraint::Fill(1)])
+        .vertical_margin(1)
+        .horizontal_margin(2)
+        .areas(right);
+
+    match AntSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+        AntSettings::Ruleset => {
+            let info = Paragraph::new(vec![
+                Line::from("The list of possible rules is:"),
+                Line::from("R: Turn right"),
+                Line::from("L: Turn left"),
+                Line::from("F: Continue forward"),
+                Line::from("B: Opposite direction"),
+            ])
+            .dim()
+            .wrap(Wrap { trim: true });
+
+            let [info_chunk, input_chunk] =
+                Layout::vertical([Constraint::Min(1), Constraint::Max(3)]).areas(right);
+
+            let scroll = sim
+                .rules_input
+                .visual_scroll(right.width.saturating_sub(3) as usize);
+
+            let input = Paragraph::new(sim.rules_input.value())
+                .scroll((0, scroll as u16))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .border_type(BorderType::Rounded)
+                        .border_style(match sim.rules_input_mode {
+                            InputMode::Normal => Style::default().dim(),
+                            InputMode::Editing => Style::default().bold().not_dim(),
+                        }),
+                );
+
+            match sim.rules_input_mode {
+                InputMode::Normal =>
+                    // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
+                    {}
+
+                InputMode::Editing => {
+                    if !app.help_screen {
+                        {
+                            frame.set_cursor_position((
+                                // Put cursor past the end of the input text
+                                right.x
+                                    + ((sim.rules_input.visual_cursor()).saturating_sub(scroll))
+                                        as u16
+                                    + 1,
+                                // Move one line down, from the border to the input line
+                                right.y + 7,
+                            ))
+                        }
+                    }
+                }
+            }
+
+            frame.render_widget(info, info_chunk);
+            frame.render_widget(input, input_chunk);
+        }
+        AntSettings::Start => {
+            start_content(frame, right);
+        }
+    }
+
+    /////////////////////////////
+    // Help screen
+    /////////////////////////////
+
+    let help_entries: Vec<(Line, Line)> = match app.selected_edit_tab.as_ref().unwrap() {
+        EditTab::Setting => settings_help(),
+        EditTab::Content => {
+            match AntSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+                AntSettings::Ruleset => ruleset_help(),
+                _ => vec![],
+            }
+        }
+    };
+
+    if app.help_screen {
+        render_help(frame, help_entries);
+    }
+}
+
+fn ruleset_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
+    vec![
+        (Line::from("?".yellow()), Line::from("Help")),
+        (
+            Line::from("Q / Esc / Enter / H".yellow()),
+            Line::from("Stop typing"),
+        ),
+    ]
+}
+
+pub struct AntSettingsList;
+impl AntSettingsList {
+    pub fn build_list<'a>() -> ListView<'a, ListItemContainer<'a, Line<'a>>> {
+        let builder = ListBuilder::new(move |context| {
+            let config = AntSettings::from_index(context.index);
+            let line = Line::from(format!("{config}")).alignment(Alignment::Center);
+            let mut item = ListItemContainer::new(line, Padding::ZERO);
+
+            if context.is_selected {
+                item = item.yellow().bold();
+            };
+
+            (item, 2)
+        });
+
+        return ListView::new(builder, AntSettings::COUNT);
     }
 }

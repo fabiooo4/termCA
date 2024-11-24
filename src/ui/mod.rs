@@ -160,7 +160,6 @@ impl<W: Widget> Widget for ListItemContainer<'_, W> {
     }
 }
 
-
 pub fn settings_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
     vec![
         (Line::from("?".yellow()), Line::from("Help")),
@@ -173,4 +172,16 @@ pub fn settings_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
         (Line::from("J / ↓".yellow()), Line::from("Next setting")),
         (Line::from("Space".yellow()), Line::from("Start simulation")),
     ]
+}
+
+fn start_content(frame: &mut Frame<'_>, buf: Rect) {
+    let info = Paragraph::new("Start the simulation").centered();
+
+    let [_, middle, _] = Layout::vertical([
+        Constraint::Min(1),
+        Constraint::Length(1),
+        Constraint::Min(1),
+    ])
+    .areas(buf);
+    frame.render_widget(info, middle);
 }
