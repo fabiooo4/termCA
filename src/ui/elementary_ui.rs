@@ -174,8 +174,11 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     /////////////////////////////
     // Centered popup
     /////////////////////////////
+    let settings = [ElementarySettings::Rule.to_string(), ElementarySettings::Start.to_string()];
+    let longest_setting: u16 = settings.iter().map(|k| k.to_string().len() as u16).max().unwrap_or(1);
+
     let edit_area =
-        centered_rect_length(36, ElementarySettings::COUNT as u16 * 2 + 5, frame.area());
+        centered_rect_length(longest_setting + 32, ElementarySettings::COUNT as u16 * 2 + 5, frame.area());
 
     let edit_block = Block::default()
         .title(" Editing Elementary CA ".bold())
@@ -192,7 +195,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         Layout::vertical([Constraint::Length(2), Constraint::Min(0)]).areas(edit_area);
 
     let [left, right] =
-        Layout::horizontal([Constraint::Percentage(25), Constraint::Min(0)]).areas(bottom);
+        Layout::horizontal([Constraint::Length(longest_setting + 4), Constraint::Min(0)]).areas(bottom);
 
     frame.render_widget(edit_block, top);
 

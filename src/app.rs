@@ -14,6 +14,7 @@ pub enum Screen {
     AntEdit(usize), // Screen for editing the ants' position and direction
     Elementary,
     GameOfLife,
+    GolEdit, // Screen for editing the game of life starting grid
 }
 
 pub enum InputMode {
@@ -159,7 +160,7 @@ impl App {
             if let Some(i) = self.list_state.selected() {
                 match self.list_items[i].screen {
                     Screen::Ant => {
-                        // Create a default ant simulation to be able to edit it
+                        // Create a default simulation to be able to edit it
                         self.start_ant_default();
                         self.editing = Some(self.list_items[i].screen);
                         self.selected_edit_tab = Some(EditTab::Setting);
@@ -172,6 +173,7 @@ impl App {
                     Screen::GameOfLife => {
                         self.start_gol_default();
                         self.editing = Some(self.list_items[i].screen);
+                        self.selected_edit_tab = Some(EditTab::Setting);
                     }
                     _ => {}
                 }

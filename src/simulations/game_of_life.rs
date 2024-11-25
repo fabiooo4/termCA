@@ -1,4 +1,5 @@
 use ratatui::style::Color;
+use tui_widget_list::ListState;
 
 use super::{ant::Ant, Direction, Grid};
 
@@ -8,17 +9,21 @@ pub struct GolSim {
     pub dead_state: Color,
     pub generation: usize, // Number of generations
 
+    pub settings_state: ListState,
     pub edit_cursor: Ant, // Reuse of the ant as a cursor
 }
 
 impl Default for GolSim {
     fn default() -> Self {
+        let mut list_state = ListState::default();
+        list_state.selected = Some(0);
         Self {
             grid: Grid::new(),
             alive_state: Color::Yellow,
             dead_state: Color::Reset,
             generation: Default::default(),
 
+            settings_state: list_state,
             edit_cursor: Ant {
                 x: usize::MAX,
                 y: usize::MAX,
@@ -135,4 +140,29 @@ fn count_alive_neighbours(grid: &Grid, x: usize, y: usize, alive_state: Color) -
     }
 
     count
+}
+
+pub enum GolSettings {
+    EditGrid,
+    Start,
+}
+
+impl GolSettings {
+    pub const COUNT: usize = 2;
+    pub fn from_index(index: usize) -> Self {
+        match index {
+            0 => GolSettings::EditGrid,
+            1 => GolSettings::Start,
+            _ => GolSettings::EditGrid,
+        }
+    }
+}
+
+impl std::fmt::Display for GolSettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GolSettings::EditGrid => write!(f, "Edit grid"),
+            GolSettings::Start => write!(f, "Start"),
+        }
+    }
 }

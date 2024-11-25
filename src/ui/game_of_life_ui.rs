@@ -1,5 +1,8 @@
 use rand::Rng;
+use ratatui::layout::{Constraint, Layout};
 use ratatui::style::Color;
+use ratatui::widgets::block::Position;
+use ratatui::widgets::{Padding, Wrap};
 use ratatui::{layout::Rect, Frame};
 
 use ratatui::{
@@ -11,10 +14,12 @@ use ratatui::{
         Block, BorderType, Borders, Clear, Paragraph,
     },
 };
+use tui_widget_list::{ListBuilder, ListView};
 
-use crate::app::App;
+use crate::app::{App, EditTab};
+use crate::simulations::game_of_life::GolSettings;
 
-use super::render_help;
+use super::{centered_rect_length, render_help, settings_help, start_content, ListItemContainer};
 
 pub fn gol_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -163,6 +168,128 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 }
 
 pub fn edit(frame: &mut Frame, app: &mut App) {
+    let sim = app.gol_sim.as_mut().unwrap();
+
+    /////////////////////////////
+    // Centered popup
+    /////////////////////////////
+    let settings = [
+        GolSettings::EditGrid.to_string(),
+        GolSettings::Start.to_string(),
+    ];
+    let longest_setting: u16 = settings
+        .iter()
+        .map(|k| k.to_string().len() as u16)
+        .max()
+        .unwrap_or(1);
+
+    let edit_area = centered_rect_length(
+        longest_setting + 43,
+        GolSettings::COUNT as u16 * 2 + 5,
+        frame.area(),
+    );
+
+    let edit_block = Block::default()
+        .title(" Editing Conway's Game of Life ".bold())
+        .title_alignment(Alignment::Center)
+        .title_position(Position::Bottom);
+
+    frame.render_widget(Clear, edit_area);
+
+    /////////////////////////////
+    // Layouts
+    /////////////////////////////
+
+    let [top, bottom] =
+        Layout::vertical([Constraint::Length(2), Constraint::Min(0)]).areas(edit_area);
+
+    let [left, right] =
+        Layout::horizontal([Constraint::Length(longest_setting + 4), Constraint::Min(0)])
+            .areas(bottom);
+
+    frame.render_widget(edit_block, top);
+
+    /////////////////////////////
+    // Block styles
+    /////////////////////////////
+
+    let selected_block = ratatui::widgets::Block::default()
+        .borders(Borders::ALL)
+        .border_type(BorderType::Thick)
+        .border_style(Style::default().yellow().bold())
+        .padding(Padding::horizontal(1))
+        .style(Style::default().not_dim());
+
+    let disabled_block = ratatui::widgets::Block::default()
+        .borders(Borders::ALL)
+        .border_type(BorderType::Thick)
+        .padding(Padding::horizontal(1))
+        .style(Style::default().dim());
+
+    /////////////////////////////
+    // Settings list
+    /////////////////////////////
+
+    let block = match app.selected_edit_tab.as_ref().unwrap() {
+        EditTab::Setting => selected_block.clone(),
+        _ => disabled_block.clone(),
+    };
+
+    frame.render_stateful_widget(
+        GolSettingsList::build_list().block(block.clone()),
+        left,
+        &mut sim.settings_state,
+    );
+
+    /////////////////////////////
+    // Content
+    /////////////////////////////
+
+    let block = match app.selected_edit_tab.as_ref().unwrap() {
+        EditTab::Content => selected_block.clone(),
+        _ => disabled_block.clone(),
+    };
+
+    frame.render_widget(block, right);
+
+    let [right] = Layout::vertical([Constraint::Fill(1)])
+        .vertical_margin(1)
+        .horizontal_margin(2)
+        .areas(right);
+
+    match GolSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+        GolSettings::EditGrid => {
+            let info_text = "Edit the cells of the starting grid";
+            let info =
+                Paragraph::new(info_text.dim()).wrap(Wrap { trim: true });
+            let [_, info_chunk, _] =
+                Layout::vertical([Constraint::Min(0), Constraint::Min(1), Constraint::Min(0)])
+                    .areas(right);
+            frame.render_widget(info, info_chunk);
+        }
+        GolSettings::Start => {
+            start_content(frame, right);
+        }
+    }
+
+    /////////////////////////////
+    // Help screen
+    /////////////////////////////
+
+    let help_entries: Vec<(Line, Line)> = match app.selected_edit_tab.as_ref().unwrap() {
+        EditTab::Setting => settings_help(),
+        EditTab::Content => {
+            GolSettings::from_index(sim.settings_state.selected.unwrap_or(0));
+            vec![]
+        }
+    };
+
+    if app.help_screen {
+        render_help(frame, help_entries);
+    }
+}
+
+pub fn edit_gol(frame: &mut Frame, app: &mut App) {
     frame.render_widget(Clear, frame.area());
     if frame
         .area()
@@ -289,7 +416,10 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     let help_entries: Vec<(Line, Line)> = vec![
         (Line::from("?".yellow()), Line::from("Help")),
-        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
+        (
+            Line::from("Q / Esc".yellow()),
+            Line::from("Stop editing the grid"),
+        ),
         (Line::from("Space".yellow()), Line::from("Toggle cell")),
         (Line::from("K / ↑".yellow()), Line::from("Move up")),
         (Line::from("J / ↓".yellow()), Line::from("Move down")),
@@ -300,5 +430,24 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
     if app.help_screen {
         render_help(frame, help_entries);
+    }
+}
+
+pub struct GolSettingsList;
+impl GolSettingsList {
+    pub fn build_list<'a>() -> ListView<'a, ListItemContainer<'a, Line<'a>>> {
+        let builder = ListBuilder::new(move |context| {
+            let config = GolSettings::from_index(context.index);
+            let line = Line::from(format!("{config}")).centered();
+            let mut item = ListItemContainer::new(line, Padding::ZERO);
+
+            if context.is_selected {
+                item = item.yellow().bold();
+            };
+
+            (item, 2)
+        });
+
+        return ListView::new(builder, GolSettings::COUNT);
     }
 }

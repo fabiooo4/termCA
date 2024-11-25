@@ -89,6 +89,7 @@ fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> io::Result<()> {
                         Screen::AntEdit(ant_idx) => ant_events::edit_ant(key, app, ant_idx),
                         Screen::Elementary => elementary_events::edit(key, app),
                         Screen::GameOfLife => game_of_life_events::edit(key, app),
+                        Screen::GolEdit => game_of_life_events::edit_gol(key, app),
                         _ => {}
                     }
                 } else {

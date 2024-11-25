@@ -25,10 +25,7 @@ use crate::{
     },
 };
 
-use super::{
-    centered_rect_length, render_help, settings_help, start_content,
-    ListItemContainer,
-};
+use super::{centered_rect_length, render_help, settings_help, start_content, ListItemContainer};
 
 pub fn ant_screen(frame: &mut Frame, app: &mut App) {
     if frame
@@ -372,7 +369,10 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     /////////////////////////////
     // Centered popup
     /////////////////////////////
-    let edit_area = centered_rect_length(42, AntSettings::COUNT as u16 * 2 + 7, frame.area());
+    let settings = [AntSettings::Ruleset.to_string(), AntSettings::Ants.to_string(), AntSettings::Start.to_string()];
+    let longest_setting: u16 = settings.iter().map(|k| k.to_string().len() as u16).max().unwrap_or(1);
+
+    let edit_area = centered_rect_length(longest_setting + 38, AntSettings::COUNT as u16 * 2 + 6, frame.area());
 
     let edit_block = Block::default()
         .title(" Editing Lanton's Ant ".bold())
@@ -389,7 +389,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         Layout::vertical([Constraint::Length(2), Constraint::Min(0)]).areas(edit_area);
 
     let [left, right] =
-        Layout::horizontal([Constraint::Percentage(25), Constraint::Min(0)]).areas(bottom);
+        Layout::horizontal([Constraint::Length(longest_setting + 4), Constraint::Min(0)]).areas(bottom);
 
     frame.render_widget(edit_block, top);
 
@@ -467,6 +467,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         EditTab::Content => {
             match AntSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
                 AntSettings::Ruleset => ruleset_help(),
+                AntSettings::Ants => ants_help(),
                 _ => vec![],
             }
         }
@@ -484,6 +485,20 @@ fn ruleset_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
             Line::from("Q / Esc / Enter / H".yellow()),
             Line::from("Stop typing"),
         ),
+    ]
+}
+
+fn ants_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
+    vec![
+        (Line::from("?".yellow()), Line::from("Help")),
+        (
+            Line::from("Q / Esc / H / ←".yellow()),
+            Line::from("Quit edit mode"),
+        ),
+        (Line::from("Enter".yellow()), Line::from("Select item")),
+        (Line::from("K / ↑".yellow()), Line::from("Previous item")),
+        (Line::from("J / ↓".yellow()), Line::from("Next item")),
+        (Line::from("Backspace".yellow()), Line::from("Delete selected ant")),
     ]
 }
 
@@ -531,7 +546,7 @@ fn ruleset_content(buf: Rect, sim: &mut AntSim, help_screen: bool, frame: &mut F
                             + ((sim.rules_input.visual_cursor()).saturating_sub(scroll)) as u16
                             + 1,
                         // Move one line down, from the border to the input line
-                        buf.y + 7,
+                        buf.y + 6,
                     ))
                 }
             }
@@ -612,7 +627,7 @@ impl AntSim {
                             crate::simulations::Direction::Up => up_style,
                             crate::simulations::Direction::Down => down_style,
                         }),
-                    ])
+                    ]),
                 ])
                 .centered();
                 let mut item = ListItemContainer::new(line, Padding::ZERO);

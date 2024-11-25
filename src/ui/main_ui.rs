@@ -215,6 +215,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Screen::AntEdit(ant_idx) => ant_ui::edit_ant(frame, app, ant_idx),
             Screen::Elementary => elementary_ui::edit(frame, app),
             Screen::GameOfLife => game_of_life_ui::edit(frame, app),
+            Screen::GolEdit => game_of_life_ui::edit_gol(frame, app),
             _ => {}
         }
     }

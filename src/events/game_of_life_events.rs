@@ -2,8 +2,8 @@ use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::style::Color;
 
 use crate::{
-    app::{App, Screen},
-    simulations::Direction,
+    app::{App, EditTab, Screen},
+    simulations::{game_of_life::GolSettings, Direction},
 };
 
 pub fn main(key: KeyEvent, app: &mut App) {
@@ -26,6 +26,51 @@ pub fn main(key: KeyEvent, app: &mut App) {
 
 pub fn edit(key: KeyEvent, app: &mut App) {
     let sim = app.gol_sim.as_mut().unwrap();
+    if app.selected_edit_tab.as_ref().unwrap() == &EditTab::Setting {
+        match key.code {
+            KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => {
+                app.editing = None;
+                app.selected_edit_tab = None;
+                app.ant_sim = None;
+            }
+
+            KeyCode::Char(' ') => {
+                // Change the screen
+                app.editing = None;
+                app.selected_edit_tab = None;
+                app.current_screen = Screen::GameOfLife;
+            }
+
+            KeyCode::Char('?') => {
+                app.help_screen = !app.help_screen;
+            }
+
+            KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => sim.settings_state.next(),
+
+            KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => sim.settings_state.previous(),
+
+            KeyCode::Enter | KeyCode::Char('l') | KeyCode::Char('L') | KeyCode::Right => {
+                match GolSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+                    GolSettings::EditGrid => {
+                        app.editing = Some(Screen::GolEdit);
+                    }
+
+                    GolSettings::Start => {
+                        // Change the screen
+                        app.editing = None;
+                        app.selected_edit_tab = None;
+                        app.current_screen = Screen::GameOfLife;
+                    }
+                }
+            }
+
+            _ => {}
+        }
+    }
+}
+
+pub fn edit_gol(key: KeyEvent, app: &mut App) {
+    let sim = app.gol_sim.as_mut().unwrap();
     let speed_toggle = 2;
 
     match key.code {
@@ -37,8 +82,7 @@ pub fn edit(key: KeyEvent, app: &mut App) {
         }
 
         KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => {
-            app.current_screen = Screen::Main;
-            app.stop_all();
+            app.editing = Some(Screen::GameOfLife)
         }
 
         KeyCode::Up | KeyCode::Char('k') => {
