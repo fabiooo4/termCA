@@ -1,6 +1,5 @@
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Rect, Size},
-    style::Modifier,
+    layout::{Constraint, Layout, Rect},
     text::Span,
     widgets::{block::Position, Padding, Wrap},
     Frame,
@@ -16,7 +15,6 @@ use ratatui::{
         Block, BorderType, Borders, Clear, Paragraph,
     },
 };
-use tui_scrollview::ScrollView;
 use tui_widget_list::{ListBuilder, ListView};
 
 use crate::{
@@ -28,7 +26,7 @@ use crate::{
 };
 
 use super::{
-    centered_rect_length, centered_rect_percent, render_help, settings_help, start_content,
+    centered_rect_length, render_help, settings_help, start_content,
     ListItemContainer,
 };
 
@@ -153,32 +151,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         },
     ]);
 
-    /* let top_left_debug = Title::from(Line::from(vec![
-        "(".into(),
-        ant_sim.ants[0].x.to_string().yellow(),
-        "/".into(),
-        ant_sim.grid.width().to_string().red(),
-        ",".into(),
-        ant_sim.ants[0].y.to_string().yellow(),
-        "/".into(),
-        ant_sim.grid.height().to_string().red(),
-        ")".into(),
-        " ".into(),
-        ant_sim.ants[0].direction.to_string().yellow(),
-        " ".into(),
-        ratatui::text::Span::styled(
-            ant_sim.grid.cells[ant_sim.ants[0].y][ant_sim.ants[0].x].to_string(),
-            Style::default().fg(ant_sim.grid.cells[ant_sim.ants[0].y][ant_sim.ants[0].x]),
-        ),
-        " ".into(),
-        "[".into(),
-        width.to_string().red(),
-        ",".into(),
-        height.to_string().red(),
-        "]".into(),
-        " ".into(),
-    ])); */
-
     /////////////////////////////
     // Simulation canvas
     /////////////////////////////
@@ -188,7 +160,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             Block::default()
                 .border_type(BorderType::Double)
                 .borders(Borders::ALL)
-                // .title(top_left_debug)
                 .title_top(top_title.centered())
                 .title_bottom(bottom_left_title.left_aligned())
                 .title_bottom(bottom_right_title.right_aligned())
@@ -237,307 +208,6 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
         (Line::from("K / ↑".yellow()), Line::from("Speed Up")),
         (Line::from("J / ↓".yellow()), Line::from("Speed Down")),
         (Line::from("L / →".yellow()), Line::from("Next Generation")),
-    ];
-
-    if app.help_screen {
-        render_help(frame, help_entries);
-    }
-}
-
-pub fn editold(frame: &mut Frame, app: &mut App) {
-    let sim = app.ant_sim.as_mut().unwrap();
-
-    let selected_style = Style::default().yellow().bold();
-    let not_selected_style = Style::default();
-
-    /////////////////////////////
-    // Centered popup
-    /////////////////////////////
-    // let edit_area = centered_rect_length(edit_area_width, edit_area_height, frame.area());
-    let edit_area = centered_rect_percent(35, 60, frame.area());
-    let edit_area_width = edit_area.width;
-    let edit_area_height = edit_area.height;
-
-    // Area with offsets for the border
-    let scroll_area = Rect::new(
-        edit_area.x + 1,
-        edit_area.y + 1,
-        edit_area_width - 1,
-        edit_area_height - 2,
-    );
-
-    let mut scroll_view = ScrollView::new(Size::new(
-        scroll_area.width - 1,
-        scroll_area.height + 7 + 3 + 4 + 5 + (sim.ants.len().saturating_sub(1) as u16) * 5 + 3,
-    ));
-
-    let edit_block = Block::default()
-        .title(" Edit ")
-        .title_alignment(Alignment::Center)
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded);
-
-    frame.render_widget(Clear, edit_area);
-
-    let horizontal_margin = 1;
-    let vertical_chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .horizontal_margin(horizontal_margin)
-        .constraints([
-            Constraint::Length(7),
-            Constraint::Length(3),
-            Constraint::Length(1),
-            Constraint::Length(4),
-            Constraint::Max(sim.ants.len() as u16 * 5),
-            Constraint::Length(3),
-            Constraint::Length(1),
-            Constraint::Length(3),
-        ])
-        .split(scroll_view.area());
-
-    /////////////////////////////
-    // Selection
-    /////////////////////////////
-    // TODO: Replace scrollview with a list of different widgets
-    if sim.scroll_state.offset().y + scroll_area.y / 3 < 10 {
-        // Select input
-        sim.edit_item_selected = 0;
-    } else if usize::from(sim.scroll_state.offset().y + scroll_area.y / 2) < sim.ants.len() * 5 + 10
-    {
-        // Select ants
-        sim.edit_item_selected =
-            usize::from(sim.scroll_state.offset().y.saturating_sub(10) / 5 + 1);
-    } else if usize::from(sim.scroll_state.offset().y + scroll_area.y / 2) < sim.ants.len() * 5 + 15
-    {
-        // Select "Add ants" button
-        sim.edit_item_selected = sim.ants.len() + 1;
-    } else if usize::from(sim.scroll_state.offset().y + scroll_area.y / 2) < sim.ants.len() * 5 + 19
-    {
-        // Select "Start simulation"
-        sim.edit_item_selected = sim.ants.len() + 2;
-    }
-
-    /////////////////////////////
-    // Ruleset input
-    /////////////////////////////
-
-    let input_paragraph_chunk = Layout::default()
-        .direction(Direction::Horizontal)
-        .horizontal_margin(horizontal_margin)
-        .vertical_margin(1)
-        .constraints([Constraint::Fill(1)])
-        .split(vertical_chunks[0]);
-
-    let input_paragraph = Paragraph::new(vec![
-        Line::from("Possible rules:"),
-        Line::from("R: Turn right"),
-        Line::from("L: Turn left"),
-        Line::from("F: Continue forward"),
-        Line::from("B: Opposite direction"),
-    ])
-    .style(Style::default().dim());
-
-    let input_scroll = sim
-        .rules_input
-        .visual_scroll(scroll_view.area().width.saturating_sub(5) as usize);
-
-    let input = Paragraph::new(sim.rules_input.value())
-        .scroll((0, input_scroll as u16))
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .border_style(match sim.rules_input_mode {
-                    InputMode::Normal => Style::default(),
-                    InputMode::Editing => Style::default()
-                        .yellow()
-                        .bold()
-                        .remove_modifier(Modifier::REVERSED),
-                })
-                .title(" Ruleset "),
-        )
-        .style(if sim.edit_item_selected == 0 {
-            match sim.rules_input_mode {
-                InputMode::Normal => selected_style,
-                InputMode::Editing => Style::default(),
-            }
-        } else {
-            not_selected_style
-        });
-
-    scroll_view.render_widget(input_paragraph, input_paragraph_chunk[0]);
-    scroll_view.render_widget(input, vertical_chunks[1]);
-
-    let input_position_y =
-        (input_paragraph_chunk[0].y + 8).saturating_sub(sim.scroll_state.offset().y);
-    match sim.rules_input_mode {
-        InputMode::Normal => {}
-        InputMode::Editing => {
-            // Make the cursor visible and put it at the specified coordinates after rendering
-            if input_position_y > 0 && input_position_y <= scroll_area.height {
-                frame.set_cursor_position((
-                    // Put cursor past the end of the input text
-                    vertical_chunks[1].x
-                        + edit_area.x
-                        + ((sim.rules_input.visual_cursor()).saturating_sub(input_scroll)) as u16
-                        + horizontal_margin * 2,
-                    // Move one line down, from the border to the input line
-                    // and offset relative to scroll
-                    vertical_chunks[1].y + edit_area.y + 2 - sim.scroll_state.offset().y,
-                ))
-            }
-        }
-    }
-
-    /////////////////////////////
-    // Ants list
-    /////////////////////////////
-    let ants_paragraph_chunk = Layout::default()
-        .direction(Direction::Horizontal)
-        .horizontal_margin(horizontal_margin)
-        .vertical_margin(1)
-        .constraints([Constraint::Fill(1)])
-        .split(vertical_chunks[3]);
-
-    let ants_paragraph = Paragraph::new(vec![Line::from(
-        "Press enter on any ant to edit its position and its direction.",
-    )])
-    .style(Style::default().dim())
-    .wrap(Wrap { trim: true });
-
-    let ant_constraints: Vec<Constraint> =
-        sim.ants.iter().map(|_| Constraint::Length(2 + 3)).collect();
-    let ant_chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints(ant_constraints)
-        .split(vertical_chunks[4]);
-
-    let right_style = Style::default().bold().yellow();
-    let left_style = Style::default().bold().red();
-    let up_style = Style::default().bold().blue();
-    let down_style = Style::default().bold().green();
-
-    for (i, ant) in sim.ants.iter().enumerate() {
-        let ant_widget = Paragraph::new(vec![
-            Line::from(format!(
-                "x: {}",
-                match ant.x {
-                    usize::MAX => "Center".to_string(),
-                    _ => {
-                        if ant.x == sim.grid.width() / 2 {
-                            "Center".to_string()
-                        } else {
-                            ant.x.to_string()
-                        }
-                    }
-                },
-            )),
-            Line::from(format!(
-                "y: {}",
-                match ant.y {
-                    usize::MAX => "Center".to_string(),
-                    _ => {
-                        if ant.y == sim.grid.height() / 2 {
-                            "Center".to_string()
-                        } else {
-                            ant.y.to_string()
-                        }
-                    }
-                },
-            )),
-            Line::from(vec![
-                "Direction: ".into(),
-                Span::from(ant.direction.to_string()).style(match ant.direction {
-                    crate::simulations::Direction::Right => right_style,
-                    crate::simulations::Direction::Left => left_style,
-                    crate::simulations::Direction::Up => up_style,
-                    crate::simulations::Direction::Down => down_style,
-                }),
-            ]),
-        ])
-        .alignment(Alignment::Center)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .title(format!(" Ant {} ", i)),
-        )
-        .style(if sim.edit_item_selected == i + 1 {
-            selected_style
-        } else {
-            not_selected_style
-        });
-
-        scroll_view.render_widget(ant_widget, ant_chunks[i]);
-    }
-    scroll_view.render_widget(ants_paragraph, ants_paragraph_chunk[0]);
-
-    /////////////////////////////
-    // Add ant button
-    /////////////////////////////
-    let add = Paragraph::new("Add ant")
-        .alignment(Alignment::Center)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded),
-        )
-        .style(if sim.edit_item_selected == 1 + sim.ants.len() {
-            selected_style
-        } else {
-            not_selected_style
-        });
-
-    let add_chunk = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Fill(1),
-            Constraint::Length(2 + 7),
-            Constraint::Fill(1),
-        ])
-        .split(vertical_chunks[5]);
-    scroll_view.render_widget(add, add_chunk[1]);
-
-    /////////////////////////////
-    // Confirm button
-    /////////////////////////////
-
-    let confirm = Paragraph::new("Start simulation")
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded),
-        )
-        .style(if sim.edit_item_selected == 2 + sim.ants.len() {
-            selected_style
-        } else {
-            not_selected_style
-        });
-
-    let confirm_chunk = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Fill(1),
-            Constraint::Length(18),
-            Constraint::Fill(1),
-        ])
-        .split(vertical_chunks[7]);
-    scroll_view.render_widget(confirm, confirm_chunk[1]);
-
-    frame.render_stateful_widget(scroll_view, scroll_area, &mut sim.scroll_state);
-    frame.render_widget(edit_block, edit_area);
-
-    /////////////////////////////
-    // Help screen
-    /////////////////////////////
-
-    let help_entries: Vec<(Line, Line)> = vec![
-        (Line::from("?".yellow()), Line::from("Help")),
-        (Line::from("Q / Esc".yellow()), Line::from("Quit")),
-        (Line::from("Enter".yellow()), Line::from("Select item")),
-        (Line::from("K / ↑".yellow()), Line::from("Previous item")),
-        (Line::from("J / ↓".yellow()), Line::from("Next item")),
-        (Line::from("Space".yellow()), Line::from("Start simulation")),
     ];
 
     if app.help_screen {

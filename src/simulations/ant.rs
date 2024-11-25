@@ -1,7 +1,6 @@
 use crate::app::InputMode;
 use ratatui::style::Color;
 use tui_input::Input;
-use tui_scrollview::ScrollViewState;
 use tui_widget_list::ListState;
 
 use super::{Direction, Grid};
@@ -15,15 +14,11 @@ pub struct AntSim {
     pub generation: usize,     // Number of generations
 
     // Edit state
-
     pub settings_state: ListState,
     pub ants_list_state: ListState,
 
     pub rules_input: Input,          // Input widget
     pub rules_input_mode: InputMode, // Input mode
-
-    pub scroll_state: ScrollViewState, // State of the edit scroll view
-    pub edit_item_selected: usize,     // Index of selected item in edit mode
 }
 
 impl Default for AntSim {
@@ -60,9 +55,6 @@ impl Default for AntSim {
 
             rules_input: Input::from(String::from("RL")),
             rules_input_mode: InputMode::Normal,
-
-            scroll_state: ScrollViewState::default(),
-            edit_item_selected: 0,
         }
     }
 }

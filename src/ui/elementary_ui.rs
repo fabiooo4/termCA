@@ -1,5 +1,4 @@
-use ratatui::layout::{Constraint, Direction, Layout};
-use ratatui::style::Color;
+use ratatui::layout::{Constraint, Layout};
 use ratatui::widgets::block::Position;
 use ratatui::widgets::{Clear, Padding, Wrap};
 use ratatui::{layout::Rect, Frame};

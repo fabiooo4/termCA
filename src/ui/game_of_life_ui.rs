@@ -54,7 +54,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     }
 
     // Initialize the simulation if it's not already
-    let width = f64::from(frame.area().width - 1);
+    let width = f64::from(frame.area().width - 2);
     let height = f64::from((frame.area().height - 2) * 2);
 
     if app.gol_sim.is_none() {
@@ -133,7 +133,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             for (y, row) in sim.grid.cells.iter().enumerate() {
                 for (x, cell) in row.iter().enumerate() {
                     ctx.draw(&Points {
-                        coords: &[(x as f64 - 1., y as f64)],
+                        coords: &[(x as f64, y as f64)],
                         color: *cell,
                     });
                 }
@@ -211,7 +211,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
     sim.grid
         .resize(width as usize, height as usize, sim.dead_state);
 
-    // Wrap cursor position
+    // Set position to center if starting position is greater than the grid
     if sim.edit_cursor.x > width as usize {
         sim.edit_cursor.x = width as usize / 2;
     }
@@ -262,7 +262,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
             for (y, row) in sim.grid.cells.iter().enumerate() {
                 for (x, cell) in row.iter().enumerate() {
                     ctx.draw(&Points {
-                        coords: &[(x as f64 - 1., y as f64)],
+                        coords: &[(x as f64, y as f64)],
                         color: *cell,
                     });
                 }
@@ -270,14 +270,13 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
             // Draw cursor
             ctx.draw(&Points {
-                coords: &[(sim.edit_cursor.x as f64 - 1., sim.edit_cursor.y as f64)],
+                coords: &[(sim.edit_cursor.x as f64, sim.edit_cursor.y as f64)],
                 color: if sim.grid.cells[sim.edit_cursor.y][sim.edit_cursor.x] == sim.alive_state {
                     Color::LightRed
                 } else {
                     sim.edit_cursor.color
                 },
             });
-
         })
         .x_bounds([0., f64::from((frame.area().width - 2) - 1)])
         .y_bounds([0., f64::from(((frame.area().height - 2) * 2) - 1)]);

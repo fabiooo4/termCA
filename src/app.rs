@@ -3,8 +3,7 @@ use ratatui::{
     symbols::Marker,
     widgets::{ScrollbarState, TableState},
 };
-use std::{ops::Deref, time::Duration};
-use tui_widget_list::ListState;
+use std::time::Duration;
 
 /// All the possible screens in the application
 #[derive(Clone, Copy)]
