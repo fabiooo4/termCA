@@ -28,7 +28,8 @@ use crate::{
 };
 
 use super::{
-    centered_rect_length, centered_rect_percent, render_help, settings_help, start_content, ListItemContainer
+    centered_rect_length, centered_rect_percent, render_help, settings_help, start_content,
+    ListItemContainer,
 };
 
 pub fn ant_screen(frame: &mut Frame, app: &mut App) {
@@ -701,7 +702,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     /////////////////////////////
     // Centered popup
     /////////////////////////////
-    let edit_area = centered_rect_length(42, AntSettings::COUNT as u16 * 2 + 9, frame.area());
+    let edit_area = centered_rect_length(42, AntSettings::COUNT as u16 * 2 + 7, frame.area());
 
     let edit_block = Block::default()
         .title(" Editing Lanton's Ant ".bold())
@@ -772,59 +773,15 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
 
     match AntSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
         AntSettings::Ruleset => {
-            let info = Paragraph::new(vec![
-                Line::from("The list of possible rules is:"),
-                Line::from("R: Turn right"),
-                Line::from("L: Turn left"),
-                Line::from("F: Continue forward"),
-                Line::from("B: Opposite direction"),
-            ])
-            .dim()
-            .wrap(Wrap { trim: true });
-
-            let [info_chunk, input_chunk] =
-                Layout::vertical([Constraint::Min(1), Constraint::Max(3)]).areas(right);
-
-            let scroll = sim
-                .rules_input
-                .visual_scroll(right.width.saturating_sub(3) as usize);
-
-            let input = Paragraph::new(sim.rules_input.value())
-                .scroll((0, scroll as u16))
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .border_type(BorderType::Rounded)
-                        .border_style(match sim.rules_input_mode {
-                            InputMode::Normal => Style::default().dim(),
-                            InputMode::Editing => Style::default().bold().not_dim(),
-                        }),
-                );
-
-            match sim.rules_input_mode {
-                InputMode::Normal =>
-                    // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
-                    {}
-
-                InputMode::Editing => {
-                    if !app.help_screen {
-                        {
-                            frame.set_cursor_position((
-                                // Put cursor past the end of the input text
-                                right.x
-                                    + ((sim.rules_input.visual_cursor()).saturating_sub(scroll))
-                                        as u16
-                                    + 1,
-                                // Move one line down, from the border to the input line
-                                right.y + 7,
-                            ))
-                        }
-                    }
-                }
-            }
-
-            frame.render_widget(info, info_chunk);
-            frame.render_widget(input, input_chunk);
+            ruleset_content(right, sim, app.help_screen, frame);
+        }
+        AntSettings::Ants => {
+            let selected_tab = app.selected_edit_tab.as_ref().unwrap();
+            frame.render_stateful_widget(
+                sim.build_ants_list(selected_tab),
+                right,
+                &mut sim.ants_list_state,
+            );
         }
         AntSettings::Start => {
             start_content(frame, right);
@@ -860,12 +817,153 @@ fn ruleset_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
     ]
 }
 
+fn ruleset_content(buf: Rect, sim: &mut AntSim, help_screen: bool, frame: &mut Frame<'_>) {
+    let info = Paragraph::new(vec![
+        Line::from("The list of possible rules is:"),
+        Line::from("R: Turn right"),
+        Line::from("L: Turn left"),
+        Line::from("F: Continue forward"),
+        Line::from("B: Opposite direction"),
+    ])
+    .dim()
+    .wrap(Wrap { trim: true });
+
+    let [info_chunk, input_chunk] =
+        Layout::vertical([Constraint::Min(1), Constraint::Max(3)]).areas(buf);
+
+    let scroll = sim
+        .rules_input
+        .visual_scroll(buf.width.saturating_sub(3) as usize);
+
+    let input = Paragraph::new(sim.rules_input.value())
+        .scroll((0, scroll as u16))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(match sim.rules_input_mode {
+                    InputMode::Normal => Style::default().dim(),
+                    InputMode::Editing => Style::default().bold().not_dim(),
+                }),
+        );
+
+    match sim.rules_input_mode {
+        InputMode::Normal =>
+            // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
+            {}
+
+        InputMode::Editing => {
+            if !help_screen {
+                {
+                    frame.set_cursor_position((
+                        // Put cursor past the end of the input text
+                        buf.x
+                            + ((sim.rules_input.visual_cursor()).saturating_sub(scroll)) as u16
+                            + 1,
+                        // Move one line down, from the border to the input line
+                        buf.y + 7,
+                    ))
+                }
+            }
+        }
+    }
+
+    frame.render_widget(info, info_chunk);
+    frame.render_widget(input, input_chunk);
+}
+
+impl AntSim {
+    pub fn build_ants_list<'a>(
+        &self,
+        selected_edit_tab: &EditTab,
+    ) -> ListView<'a, ListItemContainer<'a, Paragraph<'a>>> {
+        let is_content_selected = match selected_edit_tab {
+            EditTab::Setting => false,
+            EditTab::Content => true,
+        };
+
+        let ants = self.ants.clone();
+        let grid_width = self.grid.width();
+        let grid_height = self.grid.height();
+
+        let right_style = Style::default().bold().yellow();
+        let left_style = Style::default().bold().red();
+        let up_style = Style::default().bold().blue();
+        let down_style = Style::default().bold().green();
+
+        let builder = ListBuilder::new(move |context| {
+            if context.index == 0 {
+                // The first item is the add button
+                let label = Paragraph::new("+ Add ant").centered().block(
+                    Block::new()
+                        .borders(Borders::ALL)
+                        .border_type(BorderType::Rounded),
+                );
+                let mut add_button = ListItemContainer::new(label, Padding::bottom(1));
+                if context.is_selected && is_content_selected {
+                    add_button = add_button.yellow().bold();
+                };
+
+                (add_button, 4)
+            } else {
+                // The others are the ants
+
+                let ant = ants.get(context.index.saturating_sub(1)).unwrap();
+
+                let line = Paragraph::new(vec![
+                    Line::from(vec![Span::from(format!("Ant {}:", context.index))]),
+                    Line::from(vec![
+                        Span::from(format!(
+                            "({},{}) ",
+                            match ant.x {
+                                usize::MAX => "Center".to_string(),
+                                _ => {
+                                    if ant.x == grid_width / 2 {
+                                        "Center".to_string()
+                                    } else {
+                                        ant.x.to_string()
+                                    }
+                                }
+                            },
+                            match ant.y {
+                                usize::MAX => "Center".to_string(),
+                                _ => {
+                                    if ant.y == grid_height / 2 {
+                                        "Center".to_string()
+                                    } else {
+                                        ant.y.to_string()
+                                    }
+                                }
+                            }
+                        )),
+                        Span::from(ant.direction.to_string()).style(match ant.direction {
+                            crate::simulations::Direction::Right => right_style,
+                            crate::simulations::Direction::Left => left_style,
+                            crate::simulations::Direction::Up => up_style,
+                            crate::simulations::Direction::Down => down_style,
+                        }),
+                    ])
+                ])
+                .centered();
+                let mut item = ListItemContainer::new(line, Padding::ZERO);
+                if context.is_selected && is_content_selected {
+                    item = item.yellow().bold();
+                };
+
+                (item, 3)
+            }
+        });
+
+        return ListView::new(builder, self.ants.len() + 1);
+    }
+}
+
 pub struct AntSettingsList;
 impl AntSettingsList {
     pub fn build_list<'a>() -> ListView<'a, ListItemContainer<'a, Line<'a>>> {
         let builder = ListBuilder::new(move |context| {
             let config = AntSettings::from_index(context.index);
-            let line = Line::from(format!("{config}")).alignment(Alignment::Center);
+            let line = Line::from(format!("{config}")).centered();
             let mut item = ListItemContainer::new(line, Padding::ZERO);
 
             if context.is_selected {

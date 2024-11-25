@@ -17,6 +17,7 @@ pub struct AntSim {
     // Edit state
 
     pub settings_state: ListState,
+    pub ants_list_state: ListState,
 
     pub rules_input: Input,          // Input widget
     pub rules_input_mode: InputMode, // Input mode
@@ -54,7 +55,8 @@ impl Default for AntSim {
             rules: vec![Direction::Right, Direction::Left],
             generation: 0,
 
-            settings_state: list_state,
+            settings_state: list_state.clone(),
+            ants_list_state: list_state,
 
             rules_input: Input::from(String::from("RL")),
             rules_input_mode: InputMode::Normal,
@@ -66,6 +68,7 @@ impl Default for AntSim {
 }
 
 /// Struct that holds the ant data
+#[derive(Clone, Copy)]
 pub struct Ant {
     pub x: usize,
     pub y: usize,
@@ -198,15 +201,17 @@ impl AntSim {
 
 pub enum AntSettings {
     Ruleset,
+    Ants,
     Start,
 }
 
 impl AntSettings {
-    pub const COUNT: usize = 2;
+    pub const COUNT: usize = 3;
     pub fn from_index(index: usize) -> Self {
         match index {
             0 => AntSettings::Ruleset,
-            1 => AntSettings::Start,
+            1 => AntSettings::Ants,
+            2 => AntSettings::Start,
             _ => AntSettings::Ruleset,
         }
     }
@@ -216,6 +221,7 @@ impl std::fmt::Display for AntSettings {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AntSettings::Ruleset => write!(f, "Ruleset"),
+            AntSettings::Ants => write!(f, "Ants"),
             AntSettings::Start => write!(f, "Start"),
         }
     }

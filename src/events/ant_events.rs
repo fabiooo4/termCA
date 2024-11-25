@@ -189,6 +189,11 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                         sim.rules_input_mode = InputMode::Editing;
                         app.selected_edit_tab.as_mut().unwrap().next();
                     }
+
+                    AntSettings::Ants => {
+                        app.selected_edit_tab.as_mut().unwrap().next();
+                    }
+
                     AntSettings::Start => {
                         // Change the screen
                         app.editing = None;
@@ -202,44 +207,41 @@ pub fn edit(key: KeyEvent, app: &mut App) {
         },
 
         EditTab::Content => {
-            if let AntSettings::Ruleset =
-                AntSettings::from_index(sim.settings_state.selected.unwrap_or(0))
-            {
-                match key.code {
-                    KeyCode::Char('?') => {
-                        app.help_screen = !app.help_screen;
-                    }
+            match AntSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+                AntSettings::Ruleset => {
+                    match key.code {
+                        KeyCode::Char('?') => {
+                            app.help_screen = !app.help_screen;
+                        }
 
-                    KeyCode::Esc
-                    | KeyCode::Enter
-                    | KeyCode::Char('q')
-                    | KeyCode::Char('h')
-                    | KeyCode::Char('H') => {
-                        let sim = app.ant_sim.as_mut().unwrap();
+                        KeyCode::Esc
+                        | KeyCode::Enter
+                        | KeyCode::Char('q')
+                        | KeyCode::Char('h')
+                        | KeyCode::Char('H') => {
+                            let sim = app.ant_sim.as_mut().unwrap();
 
-                        sim.rules_input_mode = InputMode::Normal;
-                        app.selected_edit_tab.as_mut().unwrap().next();
+                            sim.rules_input_mode = InputMode::Normal;
+                            app.selected_edit_tab.as_mut().unwrap().next();
 
-                        // Parse the user inserted rules
-                        sim.rules = AntSim::parse_ant_ruleset(sim.rules_input.value());
+                            // Parse the user inserted rules
+                            sim.rules = AntSim::parse_ant_ruleset(sim.rules_input.value());
 
-                        // Add states for every rule
-                        let rules_len = sim.rules.len();
-                        let states_len =sim.states.len();
-                        if rules_len > states_len {
-                            for i in (states_len + 1)..=rules_len {
-                                sim.states.push(Color::Indexed(i as u8));
+                            // Add states for every rule
+                            let rules_len = sim.rules.len();
+                            let states_len = sim.states.len();
+                            if rules_len > states_len {
+                                for i in (states_len + 1)..=rules_len {
+                                    sim.states.push(Color::Indexed(i as u8));
+                                }
                             }
                         }
-                    }
-                    _ => {
-                        let sim = app.ant_sim.as_mut().unwrap();
-                        let allowed_chars = "rlfbRLFB";
+                        _ => {
+                            let sim = app.ant_sim.as_mut().unwrap();
+                            let allowed_chars = "rlfbRLFB";
 
-                        // Only handle allowed characters
-                        sim
-                            .rules_input
-                            .handle_event(&Event::Key(match key.code {
+                            // Only handle allowed characters
+                            sim.rules_input.handle_event(&Event::Key(match key.code {
                                 KeyCode::Char(c) => {
                                     if allowed_chars.contains(c) {
                                         KeyEvent::from(KeyCode::Char(c.to_ascii_uppercase()))
@@ -249,8 +251,64 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                                 }
                                 _ => key,
                             }));
+                        }
                     }
                 }
+
+                AntSettings::Ants => match key.code {
+                    KeyCode::Char('?') => {
+                        app.help_screen = !app.help_screen;
+                    }
+
+                    KeyCode::Esc
+                    | KeyCode::Char('q')
+                    | KeyCode::Char('h')
+                    | KeyCode::Char('H')
+                    | KeyCode::Left => {
+                        app.selected_edit_tab.as_mut().unwrap().next();
+                    }
+
+                    KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
+                        sim.ants_list_state.next()
+                    }
+
+                    KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => {
+                        sim.ants_list_state.previous()
+                    }
+
+                    KeyCode::Backspace => {
+                        if sim
+                            .ants_list_state
+                            .selected
+                            .is_some_and(|selected| selected > 0)
+                        {
+                            let selected = sim.ants_list_state.selected.unwrap();
+
+                            if selected == sim.ants.len() {
+                                sim.ants_list_state.previous();
+                            }
+
+                            sim.ants.remove(selected.saturating_sub(1));
+                        }
+                    }
+
+                    KeyCode::Enter
+                        if sim
+                            .ants_list_state
+                            .selected
+                            .is_some_and(|selected| selected == 0) =>
+                    {
+                        sim.ants.push(Ant::default());
+                    }
+
+                    KeyCode::Enter => {
+                        app.editing = Some(Screen::AntEdit(
+                            sim.ants_list_state.selected.unwrap().saturating_sub(1),
+                        ));
+                    }
+                    _ => {}
+                },
+                _ => (),
             }
         }
     }
