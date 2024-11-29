@@ -1,8 +1,7 @@
 use crate::simulations::{ant::AntSim, elementary::ElementarySim, game_of_life::GolSim};
-use ratatui::{
-    symbols::Marker,
-    widgets::{ScrollbarState, TableState},
-};
+use ratatui::
+    widgets::{ScrollbarState, TableState}
+;
 use std::time::Duration;
 
 /// All the possible screens in the application
@@ -52,7 +51,6 @@ pub struct App {
     pub is_running: bool,        // Pause/Resume
     pub speed: Duration,         // Delay between each generation
     pub speed_multiplier: usize, // Number of generations per frame
-    pub marker: Marker,          // Character to draw the cells
 
     pub list_items: Vec<SimulationItem>,
     pub list_state: TableState, // State of the list
@@ -94,7 +92,6 @@ impl App {
             is_running: false,
             speed: Duration::from_millis(80),
             speed_multiplier: 1,
-            marker: Marker::HalfBlock,
             list_items: simulations_list,
             list_state: TableState::new().with_selected_cell((0, 0)),
             scroll_state: ScrollbarState::default(),

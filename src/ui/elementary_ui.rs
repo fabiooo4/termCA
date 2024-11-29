@@ -133,7 +133,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
                 .title_bottom(key_help.centered())
                 .title_style(Style::default().bold()),
         )
-        .marker(app.marker)
+        .marker(sim.marker)
         .paint(|ctx| {
             // Draw grid
             for (y, row) in sim.grid.cells.iter().enumerate() {

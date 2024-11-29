@@ -5,7 +5,7 @@ use tui_input::backend::crossterm::EventHandler;
 use crate::{
     app::{App, EditTab, InputMode, Screen},
     simulations::{
-        ant::{Ant, AntSettings, AntSim},
+        ant::{Ant, AntPresets, AntSettings, AntSim},
         Direction,
     },
 };
@@ -55,6 +55,9 @@ pub fn edit(key: KeyEvent, app: &mut App) {
 
             KeyCode::Enter | KeyCode::Char('l') | KeyCode::Char('L') | KeyCode::Right => {
                 match AntSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+                    AntSettings::Presets => {
+                        app.selected_edit_tab.as_mut().unwrap().next();
+                    }
                     AntSettings::Ruleset => {
                         sim.rules_input_mode = InputMode::Editing;
                         app.selected_edit_tab.as_mut().unwrap().next();
@@ -78,6 +81,37 @@ pub fn edit(key: KeyEvent, app: &mut App) {
 
         EditTab::Content => {
             match AntSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+                AntSettings::Presets => match key.code {
+                    KeyCode::Char('?') => {
+                        app.help_screen = !app.help_screen;
+                    }
+
+                    KeyCode::Esc
+                    | KeyCode::Char('q')
+                    | KeyCode::Char('h')
+                    | KeyCode::Char('H')
+                    | KeyCode::Left => {
+                        app.selected_edit_tab.as_mut().unwrap().next();
+                    }
+
+                    KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => {
+                        sim.preset_state.next();
+                    }
+
+                    KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => {
+                        sim.preset_state.previous();
+                    }
+
+                    KeyCode::Enter => {
+                        if let Some(selected) = sim.preset_state.selected {
+                            // Assign to the simulation the selected preset
+                            *sim = AntSim::get_preset(AntPresets::from_index(selected));
+                            sim.preset_state.selected = Some(selected);
+                            app.selected_edit_tab.as_mut().unwrap().next();
+                        }
+                    }
+                    _ => {}
+                },
                 AntSettings::Ruleset => {
                     match key.code {
                         KeyCode::Char('?') => {
@@ -178,7 +212,7 @@ pub fn edit(key: KeyEvent, app: &mut App) {
                     }
                     _ => {}
                 },
-                _ => (),
+                AntSettings::Start => {}
             }
         }
     }

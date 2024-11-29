@@ -73,7 +73,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
 
         // Set random cells on
         let mut rng = rand::thread_rng();
-        let num_cells = 700;
+        let num_cells = width as usize * height as usize/2;
 
         for _ in 0..num_cells {
             let x = rng.gen_range((width * 0.1) as usize..(width - width * 0.1) as usize) as usize;
@@ -132,7 +132,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
                 .title_bottom(key_help.centered())
                 .title_style(Style::default().bold()),
         )
-        .marker(app.marker)
+        .marker(sim.marker)
         .paint(|ctx| {
             // Draw grid
             for (y, row) in sim.grid.cells.iter().enumerate() {
@@ -260,8 +260,7 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     match GolSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
         GolSettings::EditGrid => {
             let info_text = "Edit the cells of the starting grid";
-            let info =
-                Paragraph::new(info_text.dim()).wrap(Wrap { trim: true });
+            let info = Paragraph::new(info_text.dim()).wrap(Wrap { trim: true });
             let [_, info_chunk, _] =
                 Layout::vertical([Constraint::Min(0), Constraint::Min(1), Constraint::Min(0)])
                     .areas(right);
@@ -383,7 +382,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
                 .title_bottom(help_label.centered())
                 .title_style(Style::default().bold()),
         )
-        .marker(app.marker)
+        .marker(sim.marker)
         .paint(|ctx| {
             // Draw grid
             for (y, row) in sim.grid.cells.iter().enumerate() {

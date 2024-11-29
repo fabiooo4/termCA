@@ -1,4 +1,4 @@
-use ratatui::style::Color;
+use ratatui::{style::Color, symbols::Marker};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use tui_input::Input;
 use tui_widget_list::ListState;
@@ -8,6 +8,7 @@ use crate::app::InputMode;
 use super::Grid;
 
 pub struct ElementarySim {
+    pub marker: Marker,          // Character to draw the cells
     pub grid: Grid,              // Grid of cells
     pub current_line: Vec<bool>, // Grid of cells
     pub neighbours: usize,
@@ -27,6 +28,7 @@ impl Default for ElementarySim {
         let mut list_state = ListState::default();
         list_state.selected = Some(0);
         Self {
+            marker: Marker::HalfBlock,
             grid: Grid::new(),
             current_line: Vec::new(),
             neighbours: 3,

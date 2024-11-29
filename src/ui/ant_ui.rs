@@ -1,7 +1,7 @@
 use ratatui::{
-    layout::{Constraint, Layout, Rect},
+    layout::{Constraint, Layout, Margin, Rect},
     text::Span,
-    widgets::{block::Position, Padding, Wrap},
+    widgets::{block::Position, Padding, Scrollbar, ScrollbarOrientation, Wrap},
     Frame,
 };
 
@@ -21,7 +21,7 @@ use crate::{
     app::{App, EditTab, InputMode},
     simulations::{
         self,
-        ant::{AntSettings, AntSim},
+        ant::{AntPresets, AntSettings, AntSim},
     },
 };
 
@@ -163,7 +163,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
                 .title_bottom(key_help.centered())
                 .title_style(Style::default().bold()),
         )
-        .marker(app.marker)
+        .marker(sim.marker)
         .paint(|ctx| {
             // Draw grid
             for (y, row) in sim.grid.cells.iter().enumerate() {
@@ -320,7 +320,7 @@ EEEEEEEEEEEEEEEEEEEEEE rrrrrrr             rrrrrrr               ooooooooooo    
                 .title_bottom(help_label.centered())
                 .title_style(Style::default().bold()),
         )
-        .marker(app.marker)
+        .marker(sim.marker)
         .paint(|ctx| {
             // Draw ants
             for (i, ant) in sim.ants.iter().enumerate() {
@@ -369,10 +369,22 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     /////////////////////////////
     // Centered popup
     /////////////////////////////
-    let settings = [AntSettings::Ruleset.to_string(), AntSettings::Ants.to_string(), AntSettings::Start.to_string()];
-    let longest_setting: u16 = settings.iter().map(|k| k.to_string().len() as u16).max().unwrap_or(1);
+    let settings = [
+        AntSettings::Ruleset.to_string(),
+        AntSettings::Ants.to_string(),
+        AntSettings::Start.to_string(),
+    ];
+    let longest_setting: u16 = settings
+        .iter()
+        .map(|k| k.to_string().len() as u16)
+        .max()
+        .unwrap_or(1);
 
-    let edit_area = centered_rect_length(longest_setting + 38, AntSettings::COUNT as u16 * 2 + 6, frame.area());
+    let edit_area = centered_rect_length(
+        longest_setting + 38,
+        AntSettings::COUNT as u16 * 2 + 4,
+        frame.area(),
+    );
 
     let edit_block = Block::default()
         .title(" Editing Lanton's Ant ".bold())
@@ -389,7 +401,8 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         Layout::vertical([Constraint::Length(2), Constraint::Min(0)]).areas(edit_area);
 
     let [left, right] =
-        Layout::horizontal([Constraint::Length(longest_setting + 4), Constraint::Min(0)]).areas(bottom);
+        Layout::horizontal([Constraint::Length(longest_setting + 4), Constraint::Min(0)])
+            .areas(bottom);
 
     frame.render_widget(edit_block, top);
 
@@ -436,25 +449,34 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
 
     frame.render_widget(block, right);
 
-    let [right] = Layout::vertical([Constraint::Fill(1)])
+    let [right_content] = Layout::vertical([Constraint::Fill(1)])
         .vertical_margin(1)
         .horizontal_margin(2)
         .areas(right);
 
     match AntSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+        AntSettings::Presets => {
+            presets_content(
+                sim,
+                app.selected_edit_tab.as_ref().unwrap(),
+                frame,
+                right,
+                right_content,
+            );
+        }
         AntSettings::Ruleset => {
-            ruleset_content(right, sim, app.help_screen, frame);
+            ruleset_content(right_content, sim, app.help_screen, frame);
         }
         AntSettings::Ants => {
-            let selected_tab = app.selected_edit_tab.as_ref().unwrap();
-            frame.render_stateful_widget(
-                sim.build_ants_list(selected_tab),
-                right,
-                &mut sim.ants_list_state,
+            ants_list_content(
+                app.selected_edit_tab.as_ref().unwrap(),
+                frame,
+                sim,
+                right_content,
             );
         }
         AntSettings::Start => {
-            start_content(frame, right);
+            start_content(frame, right_content);
         }
     }
 
@@ -466,9 +488,10 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
         EditTab::Setting => settings_help(),
         EditTab::Content => {
             match AntSettings::from_index(sim.settings_state.selected.unwrap_or(0)) {
+                AntSettings::Presets => presets_help(),
                 AntSettings::Ruleset => ruleset_help(),
                 AntSettings::Ants => ants_help(),
-                _ => vec![],
+                AntSettings::Start => vec![],
             }
         }
     };
@@ -476,6 +499,19 @@ pub fn edit(frame: &mut Frame, app: &mut App) {
     if app.help_screen {
         render_help(frame, help_entries);
     }
+}
+
+fn presets_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
+    vec![
+        (Line::from("?".yellow()), Line::from("Help")),
+        (
+            Line::from("Q / Esc / H / ←".yellow()),
+            Line::from("Back to settings"),
+        ),
+        (Line::from("Enter".yellow()), Line::from("Select item")),
+        (Line::from("K / ↑".yellow()), Line::from("Previous item")),
+        (Line::from("J / ↓".yellow()), Line::from("Next item")),
+    ]
 }
 
 fn ruleset_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
@@ -493,13 +529,44 @@ fn ants_help<'a>() -> Vec<(Line<'a>, Line<'a>)> {
         (Line::from("?".yellow()), Line::from("Help")),
         (
             Line::from("Q / Esc / H / ←".yellow()),
-            Line::from("Quit edit mode"),
+            Line::from("Back to settings"),
         ),
         (Line::from("Enter".yellow()), Line::from("Select item")),
         (Line::from("K / ↑".yellow()), Line::from("Previous item")),
         (Line::from("J / ↓".yellow()), Line::from("Next item")),
-        (Line::from("Backspace".yellow()), Line::from("Delete selected ant")),
+        (
+            Line::from("Backspace".yellow()),
+            Line::from("Delete selected ant"),
+        ),
     ]
+}
+
+fn presets_content(
+    sim: &mut AntSim,
+    selected_tab: &EditTab,
+    frame: &mut Frame<'_>,
+    buf: Rect,
+    inner_buf: Rect,
+) {
+    let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight);
+
+    sim.preset_scroll_state = sim.preset_scroll_state.content_length(AntPresets::COUNT);
+    sim.preset_scroll_state = sim
+        .preset_scroll_state
+        .position(sim.preset_state.selected.unwrap());
+
+    if *selected_tab == EditTab::Content {
+        frame.render_stateful_widget(
+            scrollbar,
+            buf.inner(Margin {
+                vertical: 1,
+                horizontal: 0,
+            }),
+            &mut sim.preset_scroll_state,
+        );
+    }
+
+    frame.render_stateful_widget(AntPresets::build_list(), inner_buf, &mut sim.preset_state);
 }
 
 fn ruleset_content(buf: Rect, sim: &mut AntSim, help_screen: bool, frame: &mut Frame<'_>) {
@@ -555,6 +622,14 @@ fn ruleset_content(buf: Rect, sim: &mut AntSim, help_screen: bool, frame: &mut F
 
     frame.render_widget(info, info_chunk);
     frame.render_widget(input, input_chunk);
+}
+
+fn ants_list_content(selected_tab: &EditTab, frame: &mut Frame<'_>, sim: &mut AntSim, buf: Rect) {
+    frame.render_stateful_widget(
+        sim.build_ants_list(selected_tab),
+        buf,
+        &mut sim.ants_list_state,
+    );
 }
 
 impl AntSim {
@@ -639,7 +714,7 @@ impl AntSim {
             }
         });
 
-        return ListView::new(builder, self.ants.len() + 1);
+        ListView::new(builder, self.ants.len() + 1)
     }
 }
 
@@ -658,6 +733,24 @@ impl AntSettingsList {
             (item, 2)
         });
 
-        return ListView::new(builder, AntSettings::COUNT);
+        ListView::new(builder, AntSettings::COUNT)
+    }
+}
+
+impl AntPresets {
+    pub fn build_list<'a>() -> ListView<'a, ListItemContainer<'a, Line<'a>>> {
+        let builder = ListBuilder::new(move |context| {
+            let config = AntPresets::from_index(context.index);
+            let line = Line::from(format!("{config}")).centered();
+            let mut item = ListItemContainer::new(line, Padding::ZERO);
+
+            if context.is_selected {
+                item = item.yellow().bold();
+            };
+
+            (item, 2)
+        });
+
+        ListView::new(builder, AntPresets::COUNT)
     }
 }

@@ -1,9 +1,10 @@
-use ratatui::style::Color;
+use ratatui::{style::Color, symbols::Marker};
 use tui_widget_list::ListState;
 
 use super::{ant::Ant, Direction, Grid};
 
 pub struct GolSim {
+    pub marker: Marker,        // Character to draw the cells
     pub grid: Grid, // Grid of cells
     pub alive_state: Color,
     pub dead_state: Color,
@@ -18,6 +19,7 @@ impl Default for GolSim {
         let mut list_state = ListState::default();
         list_state.selected = Some(0);
         Self {
+            marker: Marker::HalfBlock,
             grid: Grid::new(),
             alive_state: Color::Yellow,
             dead_state: Color::Reset,
