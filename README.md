@@ -4,6 +4,8 @@ TermCA is a TUI simulator for cellular automata written in Rust. It displays the
 automata in the terminal and allows you to interact with the simulation in real
 time.
 
+![demo](https://github.com/user-attachments/assets/881f130e-f795-4c88-abd9-9fcb84bbf17b)
+
 ## Simulations
 The latest version supports the following simulations:
 - [Elementary Cellular Automata](https://en.wikipedia.org/wiki/Elementary_cellular_automaton)
